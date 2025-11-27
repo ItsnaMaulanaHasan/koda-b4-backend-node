@@ -3,9 +3,9 @@ import jwt from "jsonwebtoken";
 import process from "node:process";
 import { verifyPassword } from "../lib/hashPasswordArgon2.js";
 import {
-  addUser,
   checkUserEmail,
   getUserByEmail,
+  registerUser,
 } from "../models/users.model.js";
 
 /**
@@ -96,9 +96,6 @@ export async function register(req, res) {
     }
 
     let data = req.body;
-    if (data.role) {
-      data = { ...data, role: "customer" };
-    }
 
     const exists = await checkUserEmail(data.email);
 
@@ -110,12 +107,17 @@ export async function register(req, res) {
       return;
     }
 
-    const user = await addUser(data);
+    const user = await registerUser(data);
 
     res.json({
       success: true,
       message: "User registered successfully",
-      results: user,
+      results: {
+        id: user.id,
+        fullName: user.profile.fullName,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (err) {
     res.status(500).json({

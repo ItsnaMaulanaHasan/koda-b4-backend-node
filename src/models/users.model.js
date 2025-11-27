@@ -16,16 +16,42 @@ export async function getUserByEmail(email) {
   }
 }
 
-export async function addUser(data) {
+export async function registerUser(data) {
   try {
     const hashed = await hashPassword(data.password);
+
     const result = await prisma.user.create({
       data: {
-        fullName: data.fullName,
         email: data.email,
+        role: data.role || "customer",
         password: hashed,
+        profile: {
+          create: {
+            fullName: data.fullName,
+          },
+        },
+      },
+      include: {
+        profile: true,
       },
     });
+
+    await prisma.user.update({
+      where: { id: result.id },
+      data: {
+        createdBy: result.id,
+        updatedBy: result.id,
+      },
+    });
+
+    await prisma.profile.update({
+      where: { userId: result.id },
+      data: {
+        createdBy: result.id,
+        updatedBy: result.id,
+      },
+    });
+
     return result;
   } catch (err) {
     console.log("Error while register: ", err);
