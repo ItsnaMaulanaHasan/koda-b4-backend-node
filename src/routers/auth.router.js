@@ -1,11 +1,11 @@
 import express from "express";
-import { login, logout, register } from "../controllers/auth.controller.js";
+import { login, register } from "../controllers/auth.controller.js";
 import { loginSchema, registerSchema } from "../validators/auth.validator.js";
 
 const router = express();
 
 router.post("/auth/login", loginSchema, login);
 router.post("/auth/register", registerSchema, register);
-router.post("/auth/logout", logout);
+// router.post("/auth/logout", logout);
 
 export default router;
