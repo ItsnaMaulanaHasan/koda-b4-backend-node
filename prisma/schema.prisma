@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique @db.VarChar(255)
+  role      String   @default("customer") @db.VarChar(20)
+  password  String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  profile        Profile?
+  passwordResets PasswordReset[]
+
+  // Self relations
+  createdByUser  User?  @relation("UserCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser  User?  @relation("UserUpdatedBy", fields: [updatedBy], references: [id])
+  usersCreated   User[] @relation("UserCreatedBy")
+  usersUpdated   User[] @relation("UserUpdatedBy")
+
+  // Relations for profiles
+  profilesCreated Profile[] @relation("ProfileCreatedBy")
+  profilesUpdated Profile[] @relation("ProfileUpdatedBy")
+
+  // Relations for password resets
+  passwordResetsCreated PasswordReset[] @relation("PasswordResetCreatedBy")
+  passwordResetsUpdated PasswordReset[] @relation("PasswordResetUpdatedBy")
+
+  @@map("users")
+}
+
+model Profile {
+  id           Int      @id @default(autoincrement())
+  userId       Int?     @unique @map("user_id")
+  fullName     String   @map("full_name") @db.VarChar(255)
+  profilePhoto String?  @map("profile_photo") @db.Text
+  address      String?  @db.VarChar(255)
+  phoneNumber  String?  @map("phone_number") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy    Int?     @map("created_by")
+  updatedBy    Int?     @map("updated_by")
+
+  // Relations
+  user          User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdByUser User? @relation("ProfileCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("ProfileUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("profiles")
+}
+
+model PasswordReset {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  tokenReset String   @unique @map("token_reset") @db.Char(12)
+  expiredAt  DateTime @default(dbgenerated("CURRENT_TIMESTAMP + INTERVAL '1 hour'")) @map("expired_at") @db.Timestamp()
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy  Int?     @map("created_by")
+  updatedBy  Int?     @map("updated_by")
+
+  // Relations
+  user          User? @relation(fields: [userId], references: [id])
+  createdByUser User? @relation("PasswordResetCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("PasswordResetUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("password_resets")
+}
