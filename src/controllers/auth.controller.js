@@ -12,10 +12,14 @@ import {
  * POST /auth/login
  * @summary Login user
  * @tags authentication
- * @param  {string} email.form.required - Email of user - application/x-www-form-urlencoded
- * @param  {string} password.form.required - Password of user - application/x-www-form-urlencoded
- * @return {object} 200 - Login successfull
+ * @description Authenticate user using email and password, then return JWT token
+ * @consumes application/x-www-form-urlencoded
+ * @param {string} email.form.required - Email of the user - application/x-www-form-urlencoded
+ * @param {string} password.form.required - Password of the user - application/x-www-form-urlencoded
+ * @return {object} 200 - Login successful
  * @return {object} 401 - Incorrect email or password
+ * @return {object} 400 - Validation error
+ * @return {object} 500 - Internal server error
  */
 export async function login(req, res) {
   try {
@@ -79,13 +83,19 @@ export async function login(req, res) {
 
 /**
  * POST /auth/register
- * @summary Register user
+ * @summary Register new user
  * @tags authentication
- * @param  {string} fullName.form.required - fullname of user - application/x-www-form-urlencoded
- * @param  {string} email.form.required - Email of user - application/x-www-form-urlencoded
- * @param  {string} password.form.required - Password of user - application/x-www-form-urlencoded
- * @param  {string} role.form - Role of user - application/x-www-form-urlencoded
- * @return {object} 200 - login success
+ * @description Create a new user account using full name, email, and password
+ * @consumes application/x-www-form-urlencoded
+ * @param {string} fullName.form.required - Full name of the user - application/x-www-form-urlencoded
+ * @param {string} email.form.required - Email address of the user - application/x-www-form-urlencoded
+ * @param {string} password.form.required - Password of the user - application/x-www-form-urlencoded
+ * @param {string} role.form - Role of the user (default: customer) - application/x-www-form-urlencoded
+ * @return {object} 201 - Register success
+ * @return {object} 400 - Validation error
+ * @return {object} 409 - Email already registered
+ * @return {object} 500 - Internal server error
+ *
  */
 export async function register(req, res) {
   try {
@@ -132,10 +142,4 @@ export async function register(req, res) {
   }
 }
 
-/**
- * POST /auth/logout
- * @summary Logout user
- * @tags authentication
- * @return {object} 200 - logout success
- */
 // export async function logout(req, res) {}
