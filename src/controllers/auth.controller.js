@@ -52,9 +52,13 @@ export async function login(req, res) {
       return;
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.APP_SECRET, {
-      expiresIn: 15 * 60 * 1000,
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.APP_SECRET,
+      {
+        expiresIn: "24h",
+      }
+    );
 
     res.json({
       success: true,
