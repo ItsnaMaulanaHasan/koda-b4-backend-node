@@ -161,3 +161,12 @@ export async function getDetailUser(id) {
     throw err;
   }
 }
+
+export async function createDataUser(data) {
+  try {
+    console.log(data);
+  } catch (err) {
+    console.log("Failed to create data user:", err.message);
+    throw err;
+  }
+}

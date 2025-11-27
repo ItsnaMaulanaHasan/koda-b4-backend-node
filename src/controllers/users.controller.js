@@ -1,4 +1,7 @@
+import { validationResult } from "express-validator";
 import {
+  checkUserEmail,
+  createDataUser,
   getDetailUser,
   getListUsers,
   getTotalDataUsers,
@@ -78,7 +81,47 @@ export async function detailUser(req, res) {
   }
 }
 
-export async function createUser(req, res) {}
+export async function createUser(req, res) {
+  try {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: "Please provide valid data user",
+        error: result.array(),
+      });
+    }
+
+    let data = req.body;
+
+    const exists = await checkUserEmail(data.email);
+    if (exists) {
+      res.status(409).json({
+        success: false,
+        message: "Email is already registered",
+      });
+    }
+
+    const user = await createDataUser(data);
+
+    res.json({
+      success: true,
+      message: "User created successfully",
+      results: {
+        id: user.id,
+        fullName: user.profile.fullName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to create user",
+      error: err.message,
+    });
+  }
+}
 
 export async function updateUser(req, res) {}
 
