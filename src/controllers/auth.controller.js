@@ -25,7 +25,7 @@ export async function login(req, res) {
       res.status(400).json({
         success: false,
         message: "Please provide valid email and password",
-        results: result.array(),
+        error: result.array(),
       });
       return;
     }
@@ -94,7 +94,7 @@ export async function register(req, res) {
       res.status(400).json({
         success: false,
         message: "Please provide valid registration information",
-        results: result.array(),
+        error: result.array(),
       });
       return;
     }
@@ -102,7 +102,6 @@ export async function register(req, res) {
     let data = req.body;
 
     const exists = await checkUserEmail(data.email);
-
     if (exists) {
       res.status(409).json({
         success: false,
