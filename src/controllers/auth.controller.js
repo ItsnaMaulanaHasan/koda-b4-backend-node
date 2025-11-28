@@ -91,7 +91,6 @@ export async function login(req, res) {
       message: "Login failed",
       error: err.message,
     });
-    return;
   }
 }
 
@@ -147,7 +146,6 @@ export async function register(req, res) {
       message: "Register failed",
       error: err.message,
     });
-    return;
   }
 }
 
