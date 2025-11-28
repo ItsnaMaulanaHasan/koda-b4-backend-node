@@ -6,6 +6,14 @@ function initDocs(app) {
     info: {
       version: "1.8.0",
       title: "Backend JS Daily Greens",
+      description: "API documentation for Daily Greens application",
+    },
+    security: {
+      BearerAuth: {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+      },
     },
     baseDir: process.cwd(),
     filesPattern: "./src/**/*.js",
