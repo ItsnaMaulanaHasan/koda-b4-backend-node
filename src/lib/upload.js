@@ -1,11 +1,13 @@
 import crypto from "crypto";
 import multer, { diskStorage } from "multer";
-import { join } from "node:path";
-import { cwd } from "node:process";
+import path from "node:path";
+import process from "node:process";
 
 const storage = diskStorage({
   destination: function (req, file, cb) {
-    cb(null, join(cwd(), "uploads"));
+    const folder =
+      file.fieldname === "fileImages" ? "uploads/products" : "uploads/profiles";
+    cb(null, path.join(process.cwd(), folder));
   },
   filename: function (req, file, cb) {
     const randomName = crypto.randomBytes(16).toString("hex");
