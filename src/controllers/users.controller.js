@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import { MulterError } from "multer";
 import process from "node:process";
+import { deleteFileIfExists, getFilePathFromUrl } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
 import {
   checkUserEmail,
@@ -115,7 +116,6 @@ export async function detailUser(req, res) {
       message: "Failed to get detail user",
       error: err.message,
     });
-    return;
   }
 }
 
@@ -200,7 +200,6 @@ export async function createUser(req, res) {
         message: "Failed to create user",
         error: err.message,
       });
-      return;
     }
   });
 }
@@ -223,36 +222,40 @@ export async function updateUser(req, res) {
   upload.single("filePhoto")(req, res, async function (err) {
     try {
       if (err instanceof MulterError) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Failed to upload profile photo",
           error: err.message,
         });
+        return;
       } else if (err) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Failed to upload profile photo",
           error: err.message,
         });
+        return;
       }
 
       const result = validationResult(req);
       if (!result.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "Please provide valid data user",
           error: result.array(),
         });
+        return;
       }
 
       const userId = Number(req.params.id);
 
       const existingUser = await getDetailUser(userId);
       if (!existingUser) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: "User not found",
         });
+        return;
       }
 
       let updateData = {};
@@ -268,10 +271,11 @@ export async function updateUser(req, res) {
       if (req.body.role) updateData.role = req.body.role;
 
       if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           message: "At least one field must be provided for update",
         });
+        return;
       }
 
       if (updateData.email) {
@@ -280,21 +284,22 @@ export async function updateUser(req, res) {
           userId
         );
         if (emailExists) {
-          return res.status(409).json({
+          res.status(409).json({
             success: false,
             message: "Email is already registered",
           });
+          return;
         }
       }
 
       await updateDataUser(userId, updateData);
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: "User updated successfully",
       });
     } catch (err) {
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         message: "Failed to update user",
         error: err.message,
@@ -320,23 +325,29 @@ export async function deleteUser(req, res) {
 
     const existingUser = await getDetailUser(userId);
     if (!existingUser) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "User not found",
       });
+      return;
     }
 
     await deleteDataUser(userId);
 
-    return res.status(200).json({
+    if (existingUser.profile?.profilePhoto) {
+      const filePath = getFilePathFromUrl(
+        existingUser.profile.profilePhoto,
+        "profiles"
+      );
+      deleteFileIfExists(filePath);
+    }
+
+    res.status(200).json({
       success: true,
       message: "User deleted successfully",
-      result: {
-        id: userId,
-      },
     });
   } catch (err) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to delete user",
       error: err.message,
