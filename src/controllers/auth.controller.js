@@ -9,18 +9,33 @@ import {
 } from "../models/users.model.js";
 
 /**
+ * Login request body
+ * @typedef {object} LoginRequest
+ * @property {string} email.required - Email of the user - eg: user@example.com
+ * @property {string} password.required - Password of the user - eg: Password123!
+ */
+
+/**
+ * Register request body
+ * @typedef {object} RegisterRequest
+ * @property {string} fullName.required - Full name of the user - eg: John Doe
+ * @property {string} email.required - Email address of the user - eg: john@example.com
+ * @property {string} password.required - Password (min 8 chars with uppercase, lowercase, number, special char) - eg: Password123!
+ * @property {string} role - Role of the user - enum:customer,admin - eg: customer
+ */
+
+/**
  * POST /auth/login
  * @summary Login user
  * @tags authentication
  * @description Authenticate user using email and password, then return JWT token
- * @consumes application/x-www-form-urlencoded
- * @param {string} email.form.required - Email of the user - application/x-www-form-urlencoded
- * @param {string} password.form.required - Password of the user - application/x-www-form-urlencoded
+ * @param {LoginRequest} request.body.required - Login credentials - application/x-www-form-urlencoded
  * @return {object} 200 - Login successful
- * @return {object} 401 - Incorrect email or password
  * @return {object} 400 - Validation error
+ * @return {object} 401 - Incorrect email or password
  * @return {object} 500 - Internal server error
  */
+
 export async function login(req, res) {
   try {
     const result = validationResult(req);
@@ -86,16 +101,11 @@ export async function login(req, res) {
  * @summary Register new user
  * @tags authentication
  * @description Create a new user account using full name, email, and password
- * @consumes application/x-www-form-urlencoded
- * @param {string} fullName.form.required - Full name of the user - application/x-www-form-urlencoded
- * @param {string} email.form.required - Email address of the user - application/x-www-form-urlencoded
- * @param {string} password.form.required - Password of the user - application/x-www-form-urlencoded
- * @param {string} role.form - Role of the user (default: customer) - application/x-www-form-urlencoded
+ * @param {RegisterRequest} request.body.required - Registration data - application/x-www-form-urlencoded
  * @return {object} 201 - Register success
  * @return {object} 400 - Validation error
  * @return {object} 409 - Email already registered
  * @return {object} 500 - Internal server error
- *
  */
 export async function register(req, res) {
   try {
