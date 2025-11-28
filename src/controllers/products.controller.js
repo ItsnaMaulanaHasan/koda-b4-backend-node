@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import fs from "fs";
 import { MulterError } from "multer";
-import { deleteFileIfExists, getFilePathFromUrl } from "../lib/fileHelper.js";
+import { deleteFileIfExists, getProductFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
 import {
   checkProductName,
@@ -296,13 +296,11 @@ export async function deleteProduct(req, res) {
       return;
     }
 
-    const imageUrls =
-      existingProduct.productImages?.map((img) => img.productImage) || [];
-
     await deleteDataProduct(productId);
 
-    imageUrls.forEach((imageUrl) => {
-      const filePath = getFilePathFromUrl(imageUrl, "products");
+    existingProduct.productImages.forEach((imageUrl) => {
+      console.log("image url:", imageUrl);
+      const filePath = getProductFilePath(imageUrl);
       deleteFileIfExists(filePath);
     });
 
