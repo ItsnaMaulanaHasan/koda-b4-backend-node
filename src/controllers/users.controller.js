@@ -6,6 +6,7 @@ import {
   checkUserEmail,
   checkUserEmailExcludingId,
   createDataUser,
+  deleteDataUser,
   getDetailUser,
   getListUsers,
   getTotalDataUsers,
@@ -40,6 +41,7 @@ import {
  * @summary Get list of all users
  * @tags admin/users
  * @description Retrieve paginated list of users with optional search filter
+ * @security BearerAuth
  * @param {string} search.query - Search users by full name
  * @param {number} page.query - Current page number (default: 1)
  * @param {number} limit.query - Number of users per page (default: 10)
@@ -58,7 +60,7 @@ export async function listUsers(req, res) {
     res.json({
       success: true,
       message: "Success get list users",
-      results: {
+      result: {
         data: listUsers,
         meta: {
           page,
@@ -83,6 +85,7 @@ export async function listUsers(req, res) {
  * @summary Get user detail by Id
  * @tags admin/users
  * @description Retrieve detail information of a user by their unique Id
+ * @security BearerAuth
  * @param {number} id.path.required - Id of the user
  * @return {object} 200 - Success get detail of user
  * @return {object} 404 - User not found
@@ -104,7 +107,7 @@ export async function detailUser(req, res) {
     res.json({
       success: true,
       message: "Success get detail user",
-      results: user,
+      result: user,
     });
   } catch (err) {
     res.status(500).json({
@@ -122,6 +125,7 @@ export async function detailUser(req, res) {
  * @tags admin/users
  * @description Create a new user with optional profile photo upload
  * @param {CreateUserRequest} request.body.required - User data - multipart/form-data
+ * @security BearerAuth
  * @return {object} 201 - Create user success
  * @return {object} 400 - Validation error or upload error
  * @return {object} 409 - Email already registered
@@ -180,7 +184,7 @@ export async function createUser(req, res) {
       res.status(201).json({
         success: true,
         message: "User created successfully",
-        results: {
+        result: {
           id: user.id,
           profilePhoto: user.profile.profilePhoto || "",
           fullName: user.profile.fullName,
@@ -206,6 +210,7 @@ export async function createUser(req, res) {
  * @summary Update user
  * @tags admin/users
  * @description Update user data with optional profile photo upload
+ * @security BearerAuth
  * @param {number} id.path.required - Id of the user
  * @param {UpdateUserRequest} request.body.required - User data to update - multipart/form-data
  * @return {object} 200 - Update user success
@@ -298,4 +303,43 @@ export async function updateUser(req, res) {
   });
 }
 
-export async function deleteUser() {}
+/**
+ * DELETE /admin/users/{id}
+ * @summary Delete user
+ * @tags admin/users
+ * @description Delete user permanently from the system
+ * @security BearerAuth
+ * @param {number} id.path.required - Id of the user
+ * @return {object} 200 - Delete user success
+ * @return {object} 404 - User not found
+ * @return {object} 500 - Internal server error
+ */
+export async function deleteUser(req, res) {
+  try {
+    const userId = Number(req.params.id);
+
+    const existingUser = await getDetailUser(userId);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    await deleteDataUser(userId);
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+      result: {
+        id: userId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete user",
+      error: err.message,
+    });
+  }
+}
