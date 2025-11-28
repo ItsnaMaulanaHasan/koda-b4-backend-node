@@ -12,16 +12,31 @@ export function extractFilenameFromUrl(url) {
   }
 }
 
-export function getFilePathFromUrl(url, folder = "products") {
+export function getProductFilePath(url) {
   const filename = extractFilenameFromUrl(url);
-  return path.join(process.cwd(), "uploads", folder, filename);
+  console.log("File name:", filename);
+  return path.join(process.cwd(), "uploads", "products", filename);
+}
+
+export function getUserFilePath(url) {
+  const filename = extractFilenameFromUrl(url);
+  return path.join(process.cwd(), "uploads", "profiles", filename);
 }
 
 export function deleteFileIfExists(filePath) {
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
-    return true;
-  } else {
+  try {
+    if (!filePath) {
+      return false;
+    }
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return true;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    console.error("Failed to delete file:", filePath, err);
     return false;
   }
 }
