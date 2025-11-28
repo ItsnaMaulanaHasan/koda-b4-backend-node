@@ -1,21 +1,35 @@
 import { validationResult } from "express-validator";
 import { MulterError } from "multer";
+import process from "node:process";
 import upload from "../lib/upload.js";
 import {
   checkUserEmail,
+  checkUserEmailExcludingId,
   createDataUser,
   getDetailUser,
   getListUsers,
   getTotalDataUsers,
+  updateDataUser,
 } from "../models/users.model.js";
 
 /**
  * Create user request body
  * @typedef {object} CreateUserRequest
- * @property {string} filePhoto - User profile photo (binary file)
+ * @property {string} filePhoto - User profile photo - binary
  * @property {string} fullName.required - Full name of user - eg: John Doe
  * @property {string} email.required - Email of user - eg: john@example.com
  * @property {string} password.required - Password (min 8 chars with uppercase, lowercase, number, special char) - eg: Password123!
+ * @property {string} phone - Phone number of user - eg: +6281234567890
+ * @property {string} address - Address of user - eg: Jl. Example No. 123
+ * @property {string} role - Role of user - enum:customer,admin - eg: customer
+ */
+
+/**
+ * Update user request body
+ * @typedef {object} UpdateUserRequest
+ * @property {string} filePhoto - User profile photo - binary
+ * @property {string} fullName - Full name of user - eg: John Doe
+ * @property {string} email - Email of user - eg: john@example.com
  * @property {string} phone - Phone number of user - eg: +6281234567890
  * @property {string} address - Address of user - eg: Jl. Example No. 123
  * @property {string} role - Role of user - enum:customer,admin - eg: customer
@@ -187,6 +201,101 @@ export async function createUser(req, res) {
   });
 }
 
-export async function updateUser() {}
+/**
+ * PATCH /admin/users/{id}
+ * @summary Update user
+ * @tags admin/users
+ * @description Update user data with optional profile photo upload
+ * @param {number} id.path.required - Id of the user
+ * @param {UpdateUserRequest} request.body.required - User data to update - multipart/form-data
+ * @return {object} 200 - Update user success
+ * @return {object} 400 - Validation error or upload error
+ * @return {object} 404 - User not found
+ * @return {object} 409 - Email already registered
+ * @return {object} 500 - Internal server error
+ */
+export async function updateUser(req, res) {
+  upload.single("filePhoto")(req, res, async function (err) {
+    try {
+      if (err instanceof MulterError) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to upload profile photo",
+          error: err.message,
+        });
+      } else if (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Failed to upload profile photo",
+          error: err.message,
+        });
+      }
+
+      const result = validationResult(req);
+      if (!result.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid data user",
+          error: result.array(),
+        });
+      }
+
+      const userId = Number(req.params.id);
+
+      const existingUser = await getDetailUser(userId);
+      if (!existingUser) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      let updateData = {};
+
+      if (req.file?.filename)
+        updateData.profilePhoto =
+          process.env.BASE_UPLOAD_URL + req.file.filename;
+      if (req.body.fullName) updateData.fullName = req.body.fullName;
+      if (req.body.email) updateData.email = req.body.email;
+      if (req.body.password) updateData.password = req.body.password;
+      if (req.body.phone) updateData.phone = req.body.phone;
+      if (req.body.address) updateData.address = req.body.address;
+      if (req.body.role) updateData.role = req.body.role;
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "At least one field must be provided for update",
+        });
+      }
+
+      if (updateData.email) {
+        const emailExists = await checkUserEmailExcludingId(
+          updateData.email,
+          userId
+        );
+        if (emailExists) {
+          return res.status(409).json({
+            success: false,
+            message: "Email is already registered",
+          });
+        }
+      }
+
+      await updateDataUser(userId, updateData);
+
+      return res.status(200).json({
+        success: true,
+        message: "User updated successfully",
+      });
+    } catch (err) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to update user",
+        error: err.message,
+      });
+    }
+  });
+}
 
 export async function deleteUser() {}
