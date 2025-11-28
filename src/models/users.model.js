@@ -13,7 +13,7 @@ export async function getUserByEmail(email) {
 
     return result;
   } catch (err) {
-    console.log("Error while get data user by email: ", err);
+    console.error("Error while get data user by email: ", err);
     throw err;
   }
 }
@@ -56,7 +56,7 @@ export async function registerUser(data) {
 
     return result;
   } catch (err) {
-    console.log("Error while register: ", err);
+    console.error("Error while register: ", err);
     throw err;
   }
 }
@@ -94,7 +94,7 @@ export async function getTotalDataUsers(search) {
 
     return totalData;
   } catch (err) {
-    console.log("Failed to get total data users:", err.message);
+    console.error("Failed to get total data users:", err.message);
     throw err;
   }
 }
@@ -132,7 +132,7 @@ export async function getListUsers(search, page, limit) {
 
     return result;
   } catch (err) {
-    console.log("Failed to get list users:", err.message);
+    console.error("Failed to get list users:", err.message);
     throw err;
   }
 }
@@ -160,7 +160,7 @@ export async function getDetailUser(id) {
 
     return result;
   } catch (err) {
-    console.log("Failed to get detail user:", err.message);
+    console.error("Failed to get detail user:", err.message);
     throw err;
   }
 }
@@ -206,7 +206,7 @@ export async function createDataUser(data) {
 
     return result;
   } catch (err) {
-    console.log("Error while create data user: ", err);
+    console.error("Error while create data user: ", err);
     throw err;
   }
 }
@@ -223,7 +223,7 @@ export async function checkUserEmailExcludingId(email, excludeUserId) {
     });
     return !!user;
   } catch (err) {
-    console.log("Error while checking email: ", err);
+    console.error("Error while checking email: ", err);
     throw err;
   }
 }
@@ -258,7 +258,7 @@ export async function updateDataUser(userId, data) {
       },
     });
   } catch (err) {
-    console.log("Error while updating user: ", err);
+    console.error("Error while updating user: ", err);
     throw err;
   }
 }
@@ -274,7 +274,7 @@ export async function deleteDataUser(userId) {
 
     return result;
   } catch (err) {
-    console.log("Error while deleting user: ", err);
+    console.error("Error while deleting user: ", err);
     throw err;
   }
 }
