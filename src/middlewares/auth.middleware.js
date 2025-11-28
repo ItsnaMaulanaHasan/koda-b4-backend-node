@@ -22,6 +22,10 @@ export function authMiddleware(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.APP_SECRET);
+    req.user = {
+      id: payload.id,
+      role: payload.role,
+    };
     req.jwtPaload = payload;
     next();
   } catch (err) {
