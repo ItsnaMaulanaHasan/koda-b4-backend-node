@@ -35,7 +35,6 @@ import {
  * @return {object} 401 - Incorrect email or password
  * @return {object} 500 - Internal server error
  */
-
 export async function login(req, res) {
   try {
     const result = validationResult(req);
