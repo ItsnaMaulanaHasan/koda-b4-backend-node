@@ -1,3 +1,4 @@
+import process from "node:process";
 import { prisma } from "../lib/prisma.js";
 
 export async function getTotalDataProducts(search) {
@@ -237,6 +238,123 @@ export async function getDetailProduct(productId) {
     return result;
   } catch (err) {
     console.error("Failed to get detail product:", err.message);
+    throw err;
+  }
+}
+
+export async function checkProductName(name) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: { name },
+    });
+    return !!product;
+  } catch (err) {
+    console.error("Error while checking product name: ", err);
+    throw err;
+  }
+}
+
+export async function createDataProduct(
+  data,
+  imageFiles,
+  sizeIds,
+  categoryIds,
+  variantIds,
+  userId
+) {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          discountPercent: data.discountPercent || 0,
+          rating: data.rating || 5,
+          isFlashSale: data.isFlashSale || false,
+          stock: data.stock,
+          isActive: data.isActive !== undefined ? data.isActive : true,
+          isFavourite: data.isFavourite || false,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+      });
+
+      if (imageFiles && imageFiles.length > 0) {
+        const imageData = imageFiles.map((file, index) => ({
+          productId: product.id,
+          productImage: process.env.BASE_UPLOAD_URL + file.filename,
+          isPrimary: index === 0,
+          createdBy: userId,
+          updatedBy: userId,
+        }));
+
+        await tx.productImage.createMany({
+          data: imageData,
+        });
+      }
+
+      if (sizeIds && sizeIds.length > 0) {
+        const sizeData = sizeIds.map((sizeId) => ({
+          productId: product.id,
+          sizeId: parseInt(sizeId),
+          createdBy: userId,
+          updatedBy: userId,
+        }));
+
+        await tx.productSize.createMany({
+          data: sizeData,
+        });
+      }
+
+      if (categoryIds && categoryIds.length > 0) {
+        const categoryData = categoryIds.map((categoryId) => ({
+          productId: product.id,
+          categoryId: parseInt(categoryId),
+          createdBy: userId,
+          updatedBy: userId,
+        }));
+
+        await tx.productCategory.createMany({
+          data: categoryData,
+        });
+      }
+
+      if (variantIds && variantIds.length > 0) {
+        const variantData = variantIds.map((variantId) => ({
+          productId: product.id,
+          variantId: parseInt(variantId),
+          createdBy: userId,
+          updatedBy: userId,
+        }));
+
+        await tx.productVariant.createMany({
+          data: variantData,
+        });
+      }
+
+      const completeProduct = await tx.product.findUnique({
+        where: { id: product.id },
+        include: {
+          productImages: true,
+          productSizes: {
+            include: { size: true },
+          },
+          productCategories: {
+            include: { category: true },
+          },
+          productVariants: {
+            include: { variant: true },
+          },
+        },
+      });
+
+      return completeProduct;
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Error while creating product: ", err);
     throw err;
   }
 }
