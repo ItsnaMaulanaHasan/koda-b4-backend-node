@@ -359,6 +359,149 @@ export async function createDataProduct(
   }
 }
 
+export async function updateDataProduct(
+  productId,
+  data,
+  imageFiles,
+  sizeIds,
+  categoryIds,
+  variantIds,
+  userId
+) {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.update({
+        where: { id: productId },
+        data: {
+          name: data.name,
+          description: data.description,
+          price: data.price,
+          discountPercent: data.discountPercent || 0,
+          rating: data.rating || 5,
+          isFlashSale: data.isFlashSale || false,
+          stock: data.stock,
+          isActive: data.isActive !== undefined ? data.isActive : true,
+          isFavourite: data.isFavourite || false,
+          updatedBy: userId,
+        },
+      });
+
+      if (imageFiles && imageFiles.length > 0) {
+        await tx.productImage.deleteMany({
+          where: { productId: productId },
+        });
+
+        const imageData = imageFiles.map((file, index) => ({
+          productId: product.id,
+          productImage: process.env.BASE_UPLOAD_URL + file.filename,
+          isPrimary: index === 0,
+          createdBy: userId,
+          updatedBy: userId,
+        }));
+
+        await tx.productImage.createMany({
+          data: imageData,
+        });
+      }
+
+      if (sizeIds !== undefined) {
+        await tx.productSize.deleteMany({
+          where: { productId: productId },
+        });
+
+        if (sizeIds.length > 0) {
+          const sizeData = sizeIds.map((sizeId) => ({
+            productId: product.id,
+            sizeId: parseInt(sizeId),
+            createdBy: userId,
+            updatedBy: userId,
+          }));
+
+          await tx.productSize.createMany({
+            data: sizeData,
+          });
+        }
+      }
+
+      if (categoryIds !== undefined) {
+        await tx.productCategory.deleteMany({
+          where: { productId: productId },
+        });
+
+        if (categoryIds.length > 0) {
+          const categoryData = categoryIds.map((categoryId) => ({
+            productId: product.id,
+            categoryId: parseInt(categoryId),
+            createdBy: userId,
+            updatedBy: userId,
+          }));
+
+          await tx.productCategory.createMany({
+            data: categoryData,
+          });
+        }
+      }
+
+      if (variantIds !== undefined) {
+        await tx.productVariant.deleteMany({
+          where: { productId: productId },
+        });
+
+        if (variantIds.length > 0) {
+          const variantData = variantIds.map((variantId) => ({
+            productId: product.id,
+            variantId: parseInt(variantId),
+            createdBy: userId,
+            updatedBy: userId,
+          }));
+
+          await tx.productVariant.createMany({
+            data: variantData,
+          });
+        }
+      }
+
+      const completeProduct = await tx.product.findUnique({
+        where: { id: product.id },
+        include: {
+          productImages: true,
+          productSizes: {
+            include: { size: true },
+          },
+          productCategories: {
+            include: { category: true },
+          },
+          productVariants: {
+            include: { variant: true },
+          },
+        },
+      });
+
+      return completeProduct;
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Error while updating product: ", err);
+    throw err;
+  }
+}
+
+export async function checkProductNameForUpdate(name, excludeId) {
+  try {
+    const product = await prisma.product.findFirst({
+      where: {
+        name,
+        id: { not: excludeId },
+      },
+    });
+    return !!product;
+  } catch (err) {
+    console.error("Error while checking product name: ", err);
+    throw err;
+  }
+}
+
 export async function deleteDataProduct(productId) {
   try {
     const result = await prisma.product.delete({

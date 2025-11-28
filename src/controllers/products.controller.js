@@ -5,11 +5,13 @@ import { deleteFileIfExists, getProductFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
 import {
   checkProductName,
+  checkProductNameForUpdate,
   createDataProduct,
   deleteDataProduct,
   getDetailProduct,
   getListProductsAdmin,
   getTotalDataProducts,
+  updateDataProduct,
 } from "../models/products.model.js";
 
 /**
@@ -22,6 +24,24 @@ import {
  * @property {number} discountPercent - Discount percentage (0-100) - eg: 10
  * @property {number} rating - Product rating (0-5) - eg: 5
  * @property {integer} stock.required - Product stock - eg: 100
+ * @property {boolean} isFlashSale - Is flash sale product - eg: false
+ * @property {boolean} isActive - Is active product - eg: true
+ * @property {boolean} isFavourite - Is favourite product - eg: false
+ * @property {string} sizeProducts - Size IDs (comma-separated) - eg: 1,2,3
+ * @property {string} productCategories - Category IDs (comma-separated) - eg: 1,2
+ * @property {string} productVariants - Variant IDs (comma-separated) - eg: 1,2
+ */
+
+/**
+ * Update product request body
+ * @typedef {object} UpdateProductRequest
+ * @property {array<string>} fileImages - Product images (max 4 files, optional) - binary
+ * @property {string} name - Product name - eg: Americano
+ * @property {string} description - Product description - eg: Classic black coffee
+ * @property {number} price - Product price - eg: 25000
+ * @property {number} discountPercent - Discount percentage (0-100) - eg: 10
+ * @property {number} rating - Product rating (0-5) - eg: 5
+ * @property {integer} stock - Product stock - eg: 100
  * @property {boolean} isFlashSale - Is flash sale product - eg: false
  * @property {boolean} isActive - Is active product - eg: true
  * @property {boolean} isFavourite - Is favourite product - eg: false
@@ -145,10 +165,6 @@ export async function createProduct(req, res) {
 
       const result = validationResult(req);
       if (!result.isEmpty()) {
-        uploadedFiles.forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-
         res.status(400).json({
           success: false,
           message: "Please provide valid product data",
@@ -167,10 +183,6 @@ export async function createProduct(req, res) {
 
       const exists = await checkProductName(req.body.name);
       if (exists) {
-        uploadedFiles.forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-
         res.status(409).json({
           success: false,
           message: "Product name already exists",
@@ -180,10 +192,6 @@ export async function createProduct(req, res) {
 
       const userId = req.user.id;
       if (!userId) {
-        uploadedFiles.forEach((file) => {
-          fs.unlinkSync(file.path);
-        });
-
         res.status(401).json({
           success: false,
           message: "User Id not found in token",
@@ -262,7 +270,190 @@ export async function createProduct(req, res) {
   });
 }
 
-export async function updateProduct() {}
+/**
+ * PATCH /admin/products/{id}
+ * @summary Update product
+ * @tags admin/products
+ * @description Update an existing product with images, sizes, categories, and variants
+ * @security BearerAuth
+ * @param {number} id.path.required - Id of the product
+ * @param {UpdateProductRequest} request.body.required - Product data - multipart/form-data
+ * @return {object} 200 - Update product success
+ * @return {object} 400 - Validation error or upload error
+ * @return {object} 404 - Product not found
+ * @return {object} 409 - Product name already exists
+ * @return {object} 500 - Internal server error
+ */
+export async function updateProduct(req, res) {
+  upload.array("fileImages", 4)(req, res, async function (err) {
+    const uploadedFiles = req.files || [];
+    let oldImages = [];
+
+    try {
+      // Handle multer upload errors
+      if (err instanceof MulterError) {
+        res.status(400).json({
+          success: false,
+          message: "Failed to upload product images",
+          error: err.message,
+        });
+        return;
+      } else if (err) {
+        res.status(400).json({
+          success: false,
+          message: "Failed to upload product images",
+          error: err.message,
+        });
+        return;
+      }
+
+      // Validate product ID
+      const productId = Number(req.params.id);
+      if (isNaN(productId) || productId <= 0) {
+        res.status(400).json({
+          success: false,
+          message: "Invalid product Id",
+        });
+        return;
+      }
+
+      // Validate request body
+      const result = validationResult(req);
+      if (!result.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: "Please provide valid product data",
+          error: result.array(),
+        });
+        return;
+      }
+
+      // Check if product exists
+      const existingProduct = await getDetailProduct(productId);
+      if (!existingProduct) {
+        res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+        return;
+      }
+
+      // Save old images for cleanup if update succeeds
+      oldImages = existingProduct.productImages || [];
+
+      // Check product name uniqueness (if name is being updated)
+      if (req.body.name && req.body.name !== existingProduct.name) {
+        const nameExists = await checkProductNameForUpdate(
+          req.body.name,
+          productId
+        );
+        if (nameExists) {
+          res.status(409).json({
+            success: false,
+            message: "Product name already exists",
+          });
+          return;
+        }
+      }
+
+      // Get user ID from token
+      const userId = req.user.id;
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          message: "User Id not found in token",
+        });
+        return;
+      }
+
+      const sizeIds = req.body.sizeProducts
+        ? req.body.sizeProducts
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const categoryIds = req.body.productCategories
+        ? req.body.productCategories
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const variantIds = req.body.productVariants
+        ? req.body.productVariants
+            .split(",")
+            .map((id) => id.trim())
+            .filter(Boolean)
+        : undefined;
+
+      const productData = {
+        name: req.body.name || existingProduct.name,
+        description: req.body.description || existingProduct.description,
+        price: req.body.price
+          ? parseFloat(req.body.price)
+          : existingProduct.price,
+        discountPercent: req.body.discountPercent
+          ? parseFloat(req.body.discountPercent)
+          : existingProduct.discountPercent,
+        rating: req.body.rating
+          ? parseFloat(req.body.rating)
+          : existingProduct.rating,
+        stock: req.body.stock
+          ? parseInt(req.body.stock)
+          : existingProduct.stock,
+        isFlashSale:
+          req.body.isFlashSale !== undefined
+            ? req.body.isFlashSale === "true" || req.body.isFlashSale === true
+            : existingProduct.isFlashSale,
+        isActive:
+          req.body.isActive !== undefined
+            ? req.body.isActive === "true" || req.body.isActive === true
+            : existingProduct.isActive,
+        isFavourite:
+          req.body.isFavourite !== undefined
+            ? req.body.isFavourite === "true" || req.body.isFavourite === true
+            : existingProduct.isFavourite,
+      };
+
+      await updateDataProduct(
+        productId,
+        productData,
+        uploadedFiles.length > 0 ? uploadedFiles : null,
+        sizeIds,
+        categoryIds,
+        variantIds,
+        userId
+      );
+
+      if (uploadedFiles.length > 0 && oldImages.length > 0) {
+        oldImages.forEach((imageUrl) => {
+          const filePath = getProductFilePath(imageUrl);
+          deleteFileIfExists(filePath);
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+      });
+    } catch (err) {
+      uploadedFiles.forEach((file) => {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (unlinkErr) {
+          console.error("Failed to delete file:", file.path, unlinkErr);
+        }
+      });
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to update product",
+        error: err.message,
+      });
+    }
+  });
+}
 
 /**
  * DELETE /admin/products/{id}
@@ -299,7 +490,6 @@ export async function deleteProduct(req, res) {
     await deleteDataProduct(productId);
 
     existingProduct.productImages.forEach((imageUrl) => {
-      console.log("image url:", imageUrl);
       const filePath = getProductFilePath(imageUrl);
       deleteFileIfExists(filePath);
     });
