@@ -1,3 +1,4 @@
+import process from "node:process";
 import { hashPassword } from "../lib/hashPasswordArgon2.js";
 import { prisma } from "../lib/prisma.js";
 
@@ -164,9 +165,46 @@ export async function getDetailUser(id) {
 
 export async function createDataUser(data) {
   try {
-    console.log(data);
+    const hashed = await hashPassword(data.password);
+
+    const result = await prisma.user.create({
+      data: {
+        email: data.email,
+        role: data.role || "customer",
+        password: hashed,
+        profile: {
+          create: {
+            profilePhoto: process.env.BASE_UPLOAD_URL + data.profilePhoto,
+            fullName: data.fullName,
+            phoneNumber: data.phone,
+            address: data.address,
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: result.id },
+      data: {
+        createdBy: result.id,
+        updatedBy: result.id,
+      },
+    });
+
+    await prisma.profile.update({
+      where: { userId: result.id },
+      data: {
+        createdBy: result.id,
+        updatedBy: result.id,
+      },
+    });
+
+    return result;
   } catch (err) {
-    console.log("Failed to create data user:", err.message);
+    console.log("Error while create data user: ", err);
     throw err;
   }
 }
