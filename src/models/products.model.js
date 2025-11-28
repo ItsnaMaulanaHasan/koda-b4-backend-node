@@ -12,7 +12,7 @@ export async function getTotalDataProducts(search) {
 
     return totalData;
   } catch (err) {
-    console.log("Failed to get total data users:", err.message);
+    console.error("Failed to get total data products:", err.message);
     throw err;
   }
 }
@@ -140,7 +140,7 @@ export async function getListProductsAdmin(search, page, limit) {
 
     return result;
   } catch (err) {
-    console.log("Failed to get list products:", err.message);
+    console.error("Failed to get list products:", err.message);
     throw err;
   }
 }
@@ -236,7 +236,23 @@ export async function getDetailProduct(productId) {
 
     return result;
   } catch (err) {
-    console.log("Failed to get detail product:", err.message);
+    console.error("Failed to get detail product:", err.message);
+    throw err;
+  }
+}
+
+export async function deleteDataProduct(productId) {
+  try {
+    const result = await prisma.product.delete({
+      where: { id: productId },
+      include: {
+        productImages: true,
+      },
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Error while deleting product: ", err);
     throw err;
   }
 }

@@ -1,4 +1,6 @@
+import { deleteFileIfExists, getFilePathFromUrl } from "../lib/fileHelper.js";
 import {
+  deleteDataProduct,
   getDetailProduct,
   getListProductsAdmin,
   getTotalDataProducts,
@@ -86,6 +88,64 @@ export async function detailProductAdmin(req, res) {
     return;
   }
 }
+
 export async function createProduct() {}
 export async function updateProduct() {}
-export async function deleteProduct() {}
+
+/**
+ * DELETE /admin/products/{id}
+ * @summary Delete product
+ * @tags admin/products
+ * @description Delete product permanently from the system
+ * @security BearerAuth
+ * @param {number} id.path.required - Id of the product
+ * @return {object} 200 - Delete product success
+ * @return {object} 404 - Product not found
+ * @return {object} 500 - Internal server error
+ */
+export async function deleteProduct(req, res) {
+  try {
+    const productId = Number(req.params.id);
+
+    if (isNaN(productId) || productId <= 0) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid product ID",
+      });
+      return;
+    }
+
+    const existingProduct = await getDetailProduct(productId);
+    if (!existingProduct) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    const imageUrls =
+      existingProduct.productImages?.map((img) => img.productImage) || [];
+
+    await deleteDataProduct(productId);
+
+    imageUrls.forEach((imageUrl) => {
+      const filePath = getFilePathFromUrl(imageUrl, "products");
+      deleteFileIfExists(filePath);
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+      result: {
+        id: productId,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete product",
+      error: err.message,
+    });
+  }
+}
