@@ -46,7 +46,6 @@ export async function listProductsAdmin(req, res) {
       message: "Failed to get list products",
       error: err.message,
     });
-    return;
   }
 }
 
@@ -85,7 +84,6 @@ export async function detailProductAdmin(req, res) {
       message: "Failed to get detail product",
       error: err.message,
     });
-    return;
   }
 }
 
@@ -134,15 +132,12 @@ export async function deleteProduct(req, res) {
       deleteFileIfExists(filePath);
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Product deleted successfully",
-      result: {
-        id: productId,
-      },
     });
   } catch (err) {
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Failed to delete product",
       error: err.message,
