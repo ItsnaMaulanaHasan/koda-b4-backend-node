@@ -260,3 +260,19 @@ export async function updateDataUser(userId, data) {
     throw err;
   }
 }
+
+export async function deleteDataUser(userId) {
+  try {
+    const result = await prisma.user.delete({
+      where: { id: userId },
+      include: {
+        profile: true,
+      },
+    });
+
+    return result;
+  } catch (err) {
+    console.log("Error while deleting user: ", err);
+    throw err;
+  }
+}
