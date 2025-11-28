@@ -208,3 +208,55 @@ export async function createDataUser(data) {
     throw err;
   }
 }
+
+export async function checkUserEmailExcludingId(email, excludeUserId) {
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        email,
+        id: {
+          not: excludeUserId,
+        },
+      },
+    });
+    return !!user;
+  } catch (err) {
+    console.log("Error while checking email: ", err);
+    throw err;
+  }
+}
+
+export async function updateDataUser(userId, data) {
+  try {
+    const profileData = {};
+    if (data.profilePhoto !== undefined)
+      profileData.profilePhoto = data.profilePhoto;
+    if (data.fullName !== undefined) profileData.fullName = data.fullName;
+    if (data.phone !== undefined) profileData.phoneNumber = data.phone;
+    if (data.address !== undefined) profileData.address = data.address;
+
+    const userData = {};
+    if (data.email !== undefined) userData.email = data.email;
+    if (data.role !== undefined) userData.role = data.role;
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...userData,
+        updatedBy: userId,
+        profile: {
+          update: {
+            ...profileData,
+            updatedBy: userId,
+          },
+        },
+      },
+      include: {
+        profile: true,
+      },
+    });
+  } catch (err) {
+    console.log("Error while updating user: ", err);
+    throw err;
+  }
+}
