@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import { MulterError } from "multer";
 import process from "node:process";
-import { deleteFileIfExists, getFilePathFromUrl } from "../lib/fileHelper.js";
+import { deleteFileIfExists, getUserFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
 import {
   checkUserEmail,
@@ -335,10 +335,7 @@ export async function deleteUser(req, res) {
     await deleteDataUser(userId);
 
     if (existingUser.profile?.profilePhoto) {
-      const filePath = getFilePathFromUrl(
-        existingUser.profile.profilePhoto,
-        "profiles"
-      );
+      const filePath = getUserFilePath(existingUser.profile.profilePhoto);
       deleteFileIfExists(filePath);
     }
 
