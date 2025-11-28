@@ -1,4 +1,5 @@
 import {
+  getDetailProduct,
   getListProductsAdmin,
   getTotalDataProducts,
 } from "../models/products.model.js";
@@ -40,13 +41,51 @@ export async function listProductsAdmin(req, res) {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Failed to get list users",
+      message: "Failed to get list products",
       error: err.message,
     });
     return;
   }
 }
-export async function detailProductAdmin() {}
+
+/**
+ * GET /admin/products/{id}
+ * @summary Get product detail by Id
+ * @tags admin/products
+ * @description Retrieve detail information of a product by their unique Id
+ * @security BearerAuth
+ * @param {number} id.path.required - Id of the product
+ * @return {object} 200 - Success get detail of product
+ * @return {object} 404 - Product not found
+ * @return {object} 500 - Internal server error
+ */
+export async function detailProductAdmin(req, res) {
+  try {
+    const { id } = req.params;
+    const product = await getDetailProduct(Number(id));
+
+    if (!product) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      message: "Success get detail product",
+      result: product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get detail product",
+      error: err.message,
+    });
+    return;
+  }
+}
 export async function createProduct() {}
 export async function updateProduct() {}
 export async function deleteProduct() {}
