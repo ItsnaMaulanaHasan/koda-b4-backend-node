@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import multer, { diskStorage } from "multer";
 import { join } from "node:path";
 import { cwd } from "node:process";
@@ -7,11 +8,9 @@ const storage = diskStorage({
     cb(null, join(cwd(), "uploads"));
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now();
-    const filename = file.originalname.split(".")[0];
-    const ext =
-      file.originalname.split(".")[file.originalname.split(".").length - 1];
-    cb(null, `${filename}-${uniqueSuffix}.${ext}`);
+    const randomName = crypto.randomBytes(16).toString("hex");
+    const ext = file.originalname.split(".").pop();
+    cb(null, `${randomName}.${ext}`);
   },
 });
 
