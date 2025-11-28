@@ -71,7 +71,7 @@ export async function listUsers(req, res) {
       },
     });
   } catch (err) {
-    res.json({
+    res.status(500).json({
       success: false,
       message: "Failed to get list users",
       error: err.message,
