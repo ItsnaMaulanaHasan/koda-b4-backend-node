@@ -41,6 +41,78 @@ model User {
   passwordResetsCreated PasswordReset[] @relation("PasswordResetCreatedBy")
   passwordResetsUpdated PasswordReset[] @relation("PasswordResetUpdatedBy")
 
+  // Relations for categories
+  categoriesCreated Category[] @relation("CategoryCreatedBy")
+  categoriesUpdated Category[] @relation("CategoryUpdatedBy")
+
+  // Relations for sizes
+  sizesCreated Size[] @relation("SizeCreatedBy")
+  sizesUpdated Size[] @relation("SizeUpdatedBy")
+
+  // Relations for variants
+  variantsCreated Variant[] @relation("VariantCreatedBy")
+  variantsUpdated Variant[] @relation("VariantUpdatedBy")
+
+  // Relations for order methods
+  orderMethodsCreated OrderMethod[] @relation("OrderMethodCreatedBy")
+  orderMethodsUpdated OrderMethod[] @relation("OrderMethodUpdatedBy")
+
+  // Relations for payment methods
+  paymentMethodsCreated PaymentMethod[] @relation("PaymentMethodCreatedBy")
+  paymentMethodsUpdated PaymentMethod[] @relation("PaymentMethodUpdatedBy")
+
+  // Relations for status
+  statusesCreated Status[] @relation("StatusCreatedBy")
+  statusesUpdated Status[] @relation("StatusUpdatedBy")
+
+  // Relations for products
+  productsCreated Product[] @relation("ProductCreatedBy")
+  productsUpdated Product[] @relation("ProductUpdatedBy")
+
+  // Relations for product images
+  productImagesCreated ProductImage[] @relation("ProductImageCreatedBy")
+  productImagesUpdated ProductImage[] @relation("ProductImageUpdatedBy")
+
+  // Relations for product sizes
+  productSizesCreated ProductSize[] @relation("ProductSizeCreatedBy")
+  productSizesUpdated ProductSize[] @relation("ProductSizeUpdatedBy")
+
+  // Relations for product categories
+  productCategoriesCreated ProductCategory[] @relation("ProductCategoryCreatedBy")
+  productCategoriesUpdated ProductCategory[] @relation("ProductCategoryUpdatedBy")
+
+  // Relations for product variants
+  productVariantsCreated ProductVariant[] @relation("ProductVariantCreatedBy")
+  productVariantsUpdated ProductVariant[] @relation("ProductVariantUpdatedBy")
+
+  // Relations for transactions
+  transactions              Transaction[]  @relation("TransactionUser")
+  transactionsCreated       Transaction[]  @relation("TransactionCreatedBy")
+  transactionsUpdated       Transaction[]  @relation("TransactionUpdatedBy")
+
+  // Relations for transaction items
+  transactionItemsCreated   TransactionItem[] @relation("TransactionItemCreatedBy")
+  transactionItemsUpdated   TransactionItem[] @relation("TransactionItemUpdatedBy")
+
+  // Relations for coupons
+  couponsCreated            Coupon[]       @relation("CouponCreatedBy")
+  couponsUpdated            Coupon[]       @relation("CouponUpdatedBy")
+
+  // Relations for coupon usage
+  couponUsages              CouponUsage[]  @relation("CouponUsageUser")
+  couponUsagesCreated       CouponUsage[]  @relation("CouponUsageCreatedBy")
+  couponUsagesUpdated       CouponUsage[]  @relation("CouponUsageUpdatedBy")
+
+  // Relations for testimonies
+  testimonies               Testimony[]    @relation("TestimonyUser")
+  testimoniesCreated        Testimony[]    @relation("TestimonyCreatedBy")
+  testimoniesUpdated        Testimony[]    @relation("TestimonyUpdatedBy")
+
+  // Relations for carts
+  carts                     Cart[]         @relation("CartUser")
+  cartsCreated              Cart[]         @relation("CartCreatedBy")
+  cartsUpdated              Cart[]         @relation("CartUpdatedBy")
+
   @@map("users")
 }
 
@@ -79,5 +151,373 @@ model PasswordReset {
   createdByUser User? @relation("PasswordResetCreatedBy", fields: [createdBy], references: [id])
   updatedByUser User? @relation("PasswordResetUpdatedBy", fields: [updatedBy], references: [id])
 
+  @@index([expiredAt], name: "idx_password_resets_expired")
+
   @@map("password_resets")
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("CategoryCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("CategoryUpdatedBy", fields: [updatedBy], references: [id])
+  productCategories ProductCategory[]
+
+  @@map("categories")
+}
+
+model Size {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @db.VarChar(10)
+  sizeCost  Decimal  @default(0) @map("size_cost") @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("SizeCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("SizeUpdatedBy", fields: [updatedBy], references: [id])
+  productSizes  ProductSize[]
+  carts Cart[]
+
+  @@map("sizes")
+}
+
+model Variant {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(50)
+  variantCost Decimal  @default(0) @map("variant_cost") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy   Int?     @map("created_by")
+  updatedBy   Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("VariantCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("VariantUpdatedBy", fields: [updatedBy], references: [id])
+  productVariants ProductVariant[]
+  carts Cart[]
+
+  @@map("variants")
+}
+
+model OrderMethod {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(30)
+  deliveryFee Decimal  @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy   Int?     @map("created_by")
+  updatedBy   Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("OrderMethodCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("OrderMethodUpdatedBy", fields: [updatedBy], references: [id])
+  transactions Transaction[]
+
+  @@map("order_methods")
+}
+
+model PaymentMethod {
+  id        Int      @id @default(autoincrement())
+  image     String?  @db.Text
+  name      String   @unique @db.VarChar(30)
+  adminFee  Decimal  @default(0) @map("admin_fee") @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("PaymentMethodCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("PaymentMethodUpdatedBy", fields: [updatedBy], references: [id])
+   transactions Transaction[]
+  
+
+  @@map("payment_methods")
+}
+
+model Status {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique @default("On Progress") @db.VarChar(30)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User? @relation("StatusCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("StatusUpdatedBy", fields: [updatedBy], references: [id])
+  transactions Transaction[]
+
+
+  @@map("status")
+}
+
+model Product {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique @db.VarChar(255)
+  description     String   @db.Text
+  price           Decimal  @db.Decimal(10, 2)
+  discountPercent Decimal  @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  rating          Decimal  @default(5) @db.Decimal(2, 1)
+  isFlashSale     Boolean  @default(false) @map("is_flash_sale")
+  stock           Int?
+  isActive        Boolean  @default(true) @map("is_active")
+  isFavourite     Boolean  @default(false) @map("is_favourite")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy       Int?     @map("created_by")
+  updatedBy       Int?     @map("updated_by")
+
+  // Relations
+  createdByUser     User?              @relation("ProductCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser     User?              @relation("ProductUpdatedBy", fields: [updatedBy], references: [id])
+  productImages     ProductImage[]
+  productSizes      ProductSize[]
+  productCategories ProductCategory[]
+  productVariants   ProductVariant[]
+
+  transactionItems TransactionItem[] // Tambahkan ini
+  carts            Cart[]             // Tambahkan ini
+
+  @@index([name], name: "idx_products_name")
+  @@index([isFlashSale], map: "idx_products_is_flash_sale")
+  @@index([isActive], map: "idx_products_active") 
+
+  @@map("products")
+}
+
+model ProductImage {
+  id           Int      @id @default(autoincrement())
+  productId    Int?     @map("product_id")
+  productImage String   @map("product_image") @db.Text
+  isPrimary    Boolean  @default(false) @map("is_primary")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy    Int?     @map("created_by")
+  updatedBy    Int?     @map("updated_by")
+
+  // Relations
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdByUser User?    @relation("ProductImageCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("ProductImageUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([productId], name: "idx_product_images_product")
+
+  @@map("product_images")
+}
+
+model ProductSize {
+  id        Int      @id @default(autoincrement())
+  productId Int?     @map("product_id")
+  sizeId    Int?     @map("size_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size          Size?    @relation(fields: [sizeId], references: [id])
+  createdByUser User?    @relation("ProductSizeCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("ProductSizeUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("product_sizes")
+}
+
+model ProductCategory {
+  id         Int      @id @default(autoincrement())
+  productId  Int?     @map("product_id")
+  categoryId Int?     @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy  Int?     @map("created_by")
+  updatedBy  Int?     @map("updated_by")
+
+  // Relations
+  product       Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category      Category? @relation(fields: [categoryId], references: [id])
+  createdByUser User?     @relation("ProductCategoryCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?     @relation("ProductCategoryUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("product_categories")
+}
+
+model ProductVariant {
+  id        Int      @id @default(autoincrement())
+  productId Int?     @map("product_id")
+  variantId Int?     @map("variant_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  product       Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant       Variant? @relation(fields: [variantId], references: [id])
+  createdByUser User?    @relation("ProductVariantCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("ProductVariantUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("product_variants")
+}
+
+model Transaction {
+  id               Int      @id @default(autoincrement())
+  userId           Int?     @map("user_id")
+  noInvoice        String   @map("no_invoice") @db.VarChar(255)
+  dateTransaction  DateTime @default(now()) @map("date_transaction") @db.Timestamp()
+  fullName         String   @map("full_name") @db.VarChar(255)
+  email            String   @db.VarChar(255)
+  address          String   @db.VarChar(255)
+  phone            String   @db.VarChar(20)
+  paymentMethodId  Int?     @map("payment_method_id")
+  orderMethodId    Int?     @map("order_method_id")
+  statusId         Int?     @default(1) @map("status_id")
+  deliveryFee      Decimal  @default(0) @map("delivery_fee") @db.Decimal(10, 2)
+  adminFee         Decimal  @default(0) @map("admin_fee") @db.Decimal(10, 2)
+  tax              Decimal  @default(0) @db.Decimal(10, 2)
+  totalTransaction Decimal  @default(0) @map("total_transaction") @db.Decimal(10, 2)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy        Int?     @map("created_by")
+  updatedBy        Int?     @map("updated_by")
+
+  // Relations
+  user              User?              @relation("TransactionUser", fields: [userId], references: [id], onDelete: Restrict)
+  paymentMethod     PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
+  orderMethod       OrderMethod?       @relation(fields: [orderMethodId], references: [id])
+  status            Status?            @relation(fields: [statusId], references: [id])
+  createdByUser     User?              @relation("TransactionCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser     User?              @relation("TransactionUpdatedBy", fields: [updatedBy], references: [id])
+  transactionItems  TransactionItem[]
+  couponUsages      CouponUsage[]
+
+  @@index([userId, dateTransaction], name: "idx_transactions_user_date")
+  @@index([statusId], name: "idx_transactions_status")
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id              Int      @id @default(autoincrement())
+  transactionId   Int?     @map("transaction_id")
+  productId       Int?     @map("product_id")
+  productName     String   @map("product_name") @db.VarChar(255)
+  productPrice    Decimal  @map("product_price") @db.Decimal(10, 2)
+  discountPercent Decimal  @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  discountPrice   Decimal  @default(0) @map("discount_price") @db.Decimal(10, 2)
+  size            String?  @db.VarChar(10)
+  sizeCost        Decimal  @default(0) @map("size_cost") @db.Decimal(10, 2)
+  variant         String?  @db.VarChar(50)
+  variantCost     Decimal  @default(0) @map("variant_cost") @db.Decimal(10, 2)
+  amount          Int
+  subtotal        Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy       Int?     @map("created_by")
+  updatedBy       Int?     @map("updated_by")
+
+  // Relations
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  product       Product?     @relation(fields: [productId], references: [id])
+  createdByUser User?        @relation("TransactionItemCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?        @relation("TransactionItemUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([transactionId], name: "idx_transaction_items_transactions")
+  @@map("transaction_items")
+}
+
+model Coupon {
+  id              Int      @id @default(autoincrement())
+  title           String   @unique @db.VarChar(255)
+  description     String   @db.Text
+  discountPercent Decimal  @default(0) @map("discount_percent") @db.Decimal(5, 2)
+  minPurchase     Decimal  @default(0) @map("min_purchase") @db.Decimal(10, 2)
+  couponImage     String   @map("coupon_image") @db.Text
+  bgColor         String   @map("bg_color") @db.VarChar(20)
+  validUntil      DateTime? @map("valid_until") @db.Timestamp()
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy       Int?     @map("created_by")
+  updatedBy       Int?     @map("updated_by")
+
+  // Relations
+  createdByUser User?         @relation("CouponCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?         @relation("CouponUpdatedBy", fields: [updatedBy], references: [id])
+  couponUsages  CouponUsage[]
+
+  @@map("coupons")
+}
+
+model CouponUsage {
+  id             Int      @id @default(autoincrement())
+  userId         Int?     @map("user_id")
+  couponId       Int?     @map("coupon_id")
+  transactionId  Int?     @map("transaction_id")
+  discountAmount Decimal  @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  usedAt         DateTime @default(now()) @map("used_at") @db.Timestamp()
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy      Int?     @map("created_by")
+  updatedBy      Int?     @map("updated_by")
+
+  // Relations
+  user          User?        @relation("CouponUsageUser", fields: [userId], references: [id])
+  coupon        Coupon?      @relation(fields: [couponId], references: [id])
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  createdByUser User?        @relation("CouponUsageCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?        @relation("CouponUsageUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("coupon_usage")
+}
+
+model Testimony {
+  id          Int      @id @default(autoincrement())
+  userId      Int?     @map("user_id")
+  position    String?  @db.VarChar(100)
+  rating      Decimal  @default(5) @db.Decimal(2, 1)
+  testimonial String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy   Int?     @map("created_by")
+  updatedBy   Int?     @map("updated_by")
+
+  // Relations
+  user          User? @relation("TestimonyUser", fields: [userId], references: [id])
+  createdByUser User? @relation("TestimonyCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User? @relation("TestimonyUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("testimonies")
+}
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  productId Int?     @map("product_id")
+  sizeId    Int?     @map("size_id")
+  variantId Int?     @map("variant_id")
+  amount    Int
+  subtotal  Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp()
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamp()
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+
+  // Relations
+  user          User?    @relation("CartUser", fields: [userId], references: [id], onDelete: Cascade)
+  product       Product? @relation(fields: [productId], references: [id])
+  size          Size?    @relation(fields: [sizeId], references: [id])
+  variant       Variant? @relation(fields: [variantId], references: [id])
+  createdByUser User?    @relation("CartCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User?    @relation("CartUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@index([userId], name: "idx_carts_user")
+  @@map("carts")
 }
