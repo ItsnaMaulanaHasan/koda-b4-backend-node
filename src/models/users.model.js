@@ -85,7 +85,8 @@ export async function getTotalDataUsers(search) {
       where: {
         profile: {
           fullName: {
-            contains: search || "",
+            contains: search,
+            mode: "insensitive",
           },
         },
       },
@@ -107,7 +108,8 @@ export async function getListUsers(search, page, limit) {
       where: {
         profile: {
           fullName: {
-            contains: search || "",
+            contains: search,
+            mode: "insensitive",
           },
         },
       },
