@@ -69,3 +69,114 @@ export async function getListCart(userId) {
     throw err;
   }
 }
+
+export async function addToCart(bodyAdd) {
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: bodyAdd.productId },
+        select: {
+          stock: true,
+          price: true,
+          discountPercent: true,
+        },
+      });
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      if (bodyAdd.amount <= 0) {
+        throw new Error("Invalid amount, must be greater than 0");
+      }
+
+      if (bodyAdd.amount > product.stock) {
+        throw new Error("Amount exceeds available stock");
+      }
+
+      const size = await tx.size.findUnique({
+        where: { id: bodyAdd.sizeId },
+        select: { sizeCost: true },
+      });
+
+      const variant = await tx.variant.findUnique({
+        where: { id: bodyAdd.variantId },
+        select: { variantCost: true },
+      });
+
+      if (!size || !variant) {
+        throw new Error("Size or variant not found");
+      }
+
+      const discountPercent = product.discountPercent || 0;
+      const discountedPrice = product.price * (1 - discountPercent / 100);
+
+      const pricePerItem =
+        discountedPrice + size.sizeCost + variant.variantCost;
+      const subtotal = pricePerItem * bodyAdd.amount;
+
+      const existingCart = await tx.cart.findFirst({
+        where: {
+          userId: bodyAdd.userId,
+          productId: bodyAdd.productId,
+          sizeId: bodyAdd.sizeId,
+          variantId: bodyAdd.variantId,
+        },
+      });
+
+      if (existingCart) {
+        const newAmount = existingCart.amount + bodyAdd.amount;
+        const newSubtotal = pricePerItem * newAmount;
+
+        const updatedCart = await tx.cart.update({
+          where: { id: existingCart.id },
+          data: {
+            amount: newAmount,
+            subtotal: newSubtotal,
+            updatedBy: bodyAdd.userId,
+          },
+          select: {
+            id: true,
+            userId: true,
+            productId: true,
+            sizeId: true,
+            variantId: true,
+            amount: true,
+            subtotal: true,
+          },
+        });
+
+        return updatedCart;
+      } else {
+        const newCart = await tx.cart.create({
+          data: {
+            userId: bodyAdd.userId,
+            productId: bodyAdd.productId,
+            sizeId: bodyAdd.sizeId,
+            variantId: bodyAdd.variantId,
+            amount: bodyAdd.amount,
+            subtotal: subtotal,
+            createdBy: bodyAdd.userId,
+            updatedBy: bodyAdd.userId,
+          },
+          select: {
+            id: true,
+            userId: true,
+            productId: true,
+            sizeId: true,
+            variantId: true,
+            amount: true,
+            subtotal: true,
+          },
+        });
+
+        return newCart;
+      }
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Error while adding to cart:", err);
+    throw err;
+  }
+}
