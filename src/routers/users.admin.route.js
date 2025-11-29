@@ -6,6 +6,7 @@ import {
   listUsers,
   updateUser,
 } from "../controllers/users.controller.js";
+import { cache } from "../middlewares/caching.js";
 import {
   createUserSchema,
   updateUserSchema,
@@ -71,8 +72,8 @@ import {
 
 const router = express();
 
-router.get("", listUsers);
-router.get("/:id", detailUser);
+router.get("", cache, listUsers);
+router.get("/:id", cache, detailUser);
 router.post("", createUserSchema, createUser);
 router.patch("/:id", updateUserSchema, updateUser);
 router.delete("/:id", deleteUser);

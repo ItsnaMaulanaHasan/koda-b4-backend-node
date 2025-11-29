@@ -6,6 +6,7 @@ import {
   listProductsAdmin,
   updateProduct,
 } from "../controllers/products.controller.js";
+import { cache } from "../middlewares/caching.js";
 
 /**
  * @openapi
@@ -99,8 +100,8 @@ import {
 
 const router = express();
 
-router.get("", listProductsAdmin);
-router.get("/:id", detailProductAdmin);
+router.get("", cache, listProductsAdmin);
+router.get("/:id", cache, detailProductAdmin);
 router.post("", createProduct);
 router.patch("/:id", updateProduct);
 router.delete("/:id", deleteProduct);

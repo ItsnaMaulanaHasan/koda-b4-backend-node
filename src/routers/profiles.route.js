@@ -4,10 +4,11 @@ import {
   updateProfile,
   uploadProfilePhoto,
 } from "../controllers/profiles.controller.js";
+import { cache } from "../middlewares/caching.js";
 
 const router = express();
 
-router.get("", detailProfile);
+router.get("", cache, detailProfile);
 router.patch("", updateProfile);
 router.patch("/photo", uploadProfilePhoto);
 
