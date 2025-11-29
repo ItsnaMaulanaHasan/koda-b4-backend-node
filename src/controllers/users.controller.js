@@ -57,6 +57,30 @@ export async function listUsers(req, res) {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
 
+    if (page < 1) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid pagination parameter: 'page' must be greater than 0",
+      });
+      return;
+    }
+
+    if (limit < 1) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid pagination parameter: 'limit' must be greater than 0",
+      });
+      return;
+    }
+
+    if (limit > 100) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid pagination parameter: 'limit' cannot exceed 100",
+      });
+      return;
+    }
+
     const totalData = await getTotalDataUsers(search);
     const listUsers = await getListUsers(search, page, limit);
 
