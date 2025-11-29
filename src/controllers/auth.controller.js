@@ -9,31 +9,58 @@ import {
 } from "../models/users.model.js";
 
 /**
- * Login request body
- * @typedef {object} LoginRequest
- * @property {string} email.required - Email of the user - eg: user@example.com
- * @property {string} password.required - Password of the user - eg: Password123!
+ * @openapi
+ * components:
+ *   schemas:
+ *     LoginRequest:
+ *       type: object
+ *       required:
+ *         - email
+ *         - password
+ *       properties:
+ *         email:
+ *           type: string
+ *           example: user@example.com
+ *         password:
+ *           type: string
+ *           example: Password@123
+ *
+ *     RegisterRequest:
+ *       type: object
+ *       required:
+ *         - fullName
+ *         - email
+ *         - password
+ *       properties:
+ *         fullName:
+ *           type: string
+ *           example: Daily Greens
+ *         email:
+ *           type: string
+ *           example: greens@example.com
+ *         password:
+ *           type: string
+ *           example: Password@123
+ *         role:
+ *           type: string
+ *           enum: [customer, admin]
+ *           example: customer
  */
 
 /**
- * Register request body
- * @typedef {object} RegisterRequest
- * @property {string} fullName.required - Full name of the user - eg: John Doe
- * @property {string} email.required - Email address of the user - eg: john@example.com
- * @property {string} password.required - Password (min 8 chars with uppercase, lowercase, number, special char) - eg: Password123!
- * @property {string} role - Role of the user - enum:customer,admin - eg: customer
- */
-
-/**
- * POST /auth/login
- * @summary Login user
- * @tags authentication
- * @description Authenticate user using email and password, then return JWT token
- * @param {LoginRequest} request.body.required - Login credentials - application/x-www-form-urlencoded
- * @return {object} 200 - Login successful
- * @return {object} 400 - Validation error
- * @return {object} 401 - Incorrect email or password
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags:
+ *       - authentication
+ *     description: Login user with email and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
  */
 export async function login(req, res) {
   try {
@@ -95,15 +122,19 @@ export async function login(req, res) {
 }
 
 /**
- * POST /auth/register
- * @summary Register new user
- * @tags authentication
- * @description Create a new user account using full name, email, and password
- * @param {RegisterRequest} request.body.required - Registration data - application/x-www-form-urlencoded
- * @return {object} 201 - Register success
- * @return {object} 400 - Validation error
- * @return {object} 409 - Email already registered
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /auth/register:
+ *   post:
+ *     summary: Register new user
+ *     tags:
+ *       - authentication
+ *     description: Register user with fullname, email, role, and password
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             $ref: '#/components/schemas/RegisterRequest'
  */
 export async function register(req, res) {
   try {
