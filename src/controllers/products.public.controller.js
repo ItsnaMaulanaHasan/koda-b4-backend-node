@@ -1,5 +1,31 @@
 import { getListFavouriteProducts } from "../models/products.model.js";
 
+/**
+ * @openapi
+ * /products/favourites:
+ *   get:
+ *     summary: Get favourite products
+ *     tags:
+ *       - products (public)
+ *     description: Retrieve a list of favourite products with optional limit parameter.
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 20
+ *         required: false
+ *         example: 4
+ *         description: Number of products to return (default 4, max 20)
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved favourite products
+ *       400:
+ *         description: Invalid limit value
+ *       500:
+ *         description: Internal server error
+ */
 export async function favouriteProducts(req, res) {
   try {
     const limit = parseInt(req.query.limit) || 4;
