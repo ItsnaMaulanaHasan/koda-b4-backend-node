@@ -186,3 +186,42 @@ export async function getTransactionItems(transactionId) {
     throw err;
   }
 }
+
+export async function checkTransactionExists(id) {
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: id },
+      select: { id: true },
+    });
+
+    return !!transaction;
+  } catch (err) {
+    console.error("Error while checking transaction existence:", err);
+    throw err;
+  }
+}
+
+export async function updateTransactionStatusById(
+  transactionId,
+  statusId,
+  userId
+) {
+  try {
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        statusId: statusId,
+        updatedBy: userId,
+        updatedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: "Transaction status updated successfully",
+    };
+  } catch (err) {
+    console.error("Error while updating transaction status:", err);
+    throw err;
+  }
+}

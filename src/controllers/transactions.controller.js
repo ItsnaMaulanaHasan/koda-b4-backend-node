@@ -190,4 +190,115 @@ export async function detailTransaction(req, res) {
   }
 }
 
-export async function updateStatusTransaction() {}
+import {
+  checkTransactionExists,
+  updateTransactionStatusById,
+} from "../models/transactions.model.js";
+
+/**
+ * @openapi
+ * /admin/transactions/{id}:
+ *   patch:
+ *     summary: Update transaction status
+ *     tags:
+ *       - admin/transactions
+ *     security:
+ *       - BearerAuth: []
+ *     description: Updating transaction status based on Id
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: Transaction Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - statusId
+ *             properties:
+ *               statusId:
+ *                 type: integer
+ *                 description: Transaction status (1=On Progress, 2=Sending Goods, 3=Finish Order)
+ *                 example: 2
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - statusId
+ *             properties:
+ *               statusId:
+ *                 type: integer
+ *                 description: Transaction status (1=On Progress, 2=Sending Goods, 3=Finish Order)
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Transaction status updated successfully
+ *       400:
+ *         description: Invalid Id format or invalid request body
+ *       401:
+ *         description: User Id not found in token
+ *       404:
+ *         description: Transaction not found
+ *       500:
+ *         description: Internal server error while updating transaction status
+ */
+export async function updateStatusTransaction(req, res) {
+  try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id) || id <= 0) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Id format",
+      });
+      return;
+    }
+
+    const statusId = Number(req.body.statusId);
+
+    if (!statusId || isNaN(statusId)) {
+      res.status(400).json({
+        success: false,
+        message: "Status is required",
+      });
+      return;
+    }
+
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "User Id not found in token",
+      });
+      return;
+    }
+
+    const isExists = await checkTransactionExists(id);
+    if (!isExists) {
+      res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+      return;
+    }
+
+    const result = await updateTransactionStatusById(id, statusId, userId);
+
+    res.status(200).json({
+      success: result.success,
+      message: result.message,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update status transaction",
+      error: err.message,
+    });
+  }
+}
