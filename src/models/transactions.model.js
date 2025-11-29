@@ -130,7 +130,7 @@ export async function getDetailTransaction(id) {
     });
 
     if (!transaction) {
-      throw new Error("Transaction not found");
+      return null;
     }
 
     const formattedTransaction = {

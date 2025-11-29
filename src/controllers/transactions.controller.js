@@ -164,6 +164,14 @@ export async function detailTransaction(req, res) {
     }
 
     const transaction = await getDetailTransaction(id);
+    if (!transaction) {
+      res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+      return;
+    }
+
     const transactionItems = await getTransactionItems(id);
 
     transaction.transactionItems = transactionItems;
@@ -174,15 +182,9 @@ export async function detailTransaction(req, res) {
       data: transaction,
     });
   } catch (err) {
-    const statusCode = err.message === "Transaction not found" ? 404 : 500;
-    const message =
-      err.message === "Transaction not found"
-        ? "Transaction not found"
-        : "Failed to fetch transaction from database";
-
-    res.status(statusCode).json({
+    res.status(500).json({
       success: false,
-      message: message,
+      message: "Failed to get detail transaction",
       error: err.message,
     });
   }
