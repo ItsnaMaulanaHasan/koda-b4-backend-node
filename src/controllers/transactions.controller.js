@@ -1,8 +1,10 @@
 import {
+  checkTransactionExists,
   getDetailTransaction,
   getListAllTransactions,
   getTotalDataTransactions,
   getTransactionItems,
+  updateTransactionStatusById,
 } from "../models/transactions.model.js";
 
 /**
@@ -190,11 +192,6 @@ export async function detailTransaction(req, res) {
   }
 }
 
-import {
-  checkTransactionExists,
-  updateTransactionStatusById,
-} from "../models/transactions.model.js";
-
 /**
  * @openapi
  * /admin/transactions/{id}:
@@ -302,3 +299,5 @@ export async function updateStatusTransaction(req, res) {
     });
   }
 }
+
+export async function checkout() {}
