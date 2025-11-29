@@ -1,6 +1,8 @@
 import {
+  getDetailTransaction,
   getListAllTransactions,
   getTotalDataTransactions,
+  getTransactionItems,
 } from "../models/transactions.model.js";
 
 /**
@@ -121,6 +123,69 @@ export async function listTransactions(req, res) {
   }
 }
 
-export async function detailTransaction() {}
+/**
+ * @openapi
+ * /admin/transactions/{id}:
+ *   get:
+ *     summary: Get transaction by Id
+ *     tags:
+ *       - admin/transactions
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieving transaction detail data based on Id including transaction items
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: Transaction Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved transaction detail
+ *       400:
+ *         description: Invalid Id format
+ *       404:
+ *         description: Transaction not found
+ *       500:
+ *         description: Internal server error while fetching transaction from database
+ */
+export async function detailTransaction(req, res) {
+  try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id) || id <= 0) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Id format",
+      });
+      return;
+    }
+
+    const transaction = await getDetailTransaction(id);
+    const transactionItems = await getTransactionItems(id);
+
+    transaction.transactionItems = transactionItems;
+
+    res.status(200).json({
+      success: true,
+      message: "Success get transaction detail",
+      data: transaction,
+    });
+  } catch (err) {
+    const statusCode = err.message === "Transaction not found" ? 404 : 500;
+    const message =
+      err.message === "Transaction not found"
+        ? "Transaction not found"
+        : "Failed to fetch transaction from database";
+
+    res.status(statusCode).json({
+      success: false,
+      message: message,
+      error: err.message,
+    });
+  }
+}
 
 export async function updateStatusTransaction() {}
