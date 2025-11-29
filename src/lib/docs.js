@@ -1,28 +1,32 @@
-import expressJSDocSwagger from "express-jsdoc-swagger";
-import process from "node:process";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 function initDocs(app) {
   const options = {
-    info: {
-      version: "1.8.0",
-      title: "Backend JS Daily Greens",
-      description: "API documentation for Daily Greens application",
-    },
-    security: {
-      BearerAuth: {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT",
+    definition: {
+      openapi: "3.0.0",
+      info: {
+        version: "1.8.0",
+        title: "Backend JS Daily Greens",
+        description: "API documentation for Daily Greens application",
+      },
+      components: {
+        securitySchemes: {
+          BearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
       },
     },
-    baseDir: process.cwd(),
-    filesPattern: "./src/**/*.js",
-    exposeSwaggerUI: true,
-    exposeApiDocs: false,
-    notRequiredAsNullable: false,
+
+    apis: ["./src/**/*.js"],
   };
 
-  expressJSDocSwagger(app)(options);
+  const openapiSpecification = swaggerJsdoc(options);
+
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpecification));
 }
 
 export default initDocs;
