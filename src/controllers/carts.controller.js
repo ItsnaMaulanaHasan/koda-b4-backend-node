@@ -1,4 +1,8 @@
-import { addToCart, getListCart } from "../models/carts.model.js";
+import {
+  addToCart,
+  deleteCartById,
+  getListCart,
+} from "../models/carts.model.js";
 
 /**
  * @openapi
@@ -155,4 +159,65 @@ export async function addCart(req, res) {
   }
 }
 
-export async function deleteCart() {}
+/**
+ * @openapi
+ * /carts/{id}:
+ *   delete:
+ *     summary: Delete cart
+ *     tags:
+ *       - carts
+ *     security:
+ *       - BearerAuth: []
+ *     description: Delete cart by Id
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: Cart Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Cart deleted successfully
+ *       400:
+ *         description: Invalid Id format
+ *       404:
+ *         description: Cart not found
+ *       500:
+ *         description: Internal server error
+ */
+export async function deleteCart(req, res) {
+  try {
+    const cartId = Number(req.params.id);
+
+    if (isNaN(cartId) || cartId <= 0) {
+      res.status(400).json({
+        success: false,
+        message: "Failed to convert type id from param",
+      });
+      return;
+    }
+
+    const result = await deleteCartById(cartId);
+
+    if (result.rowsAffected === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Cart not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cart deleted successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to deleting cart",
+      error: err.message,
+    });
+  }
+}

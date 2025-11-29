@@ -180,3 +180,23 @@ export async function addToCart(bodyAdd) {
     throw err;
   }
 }
+
+export async function deleteCartById(cartId) {
+  try {
+    const deletedCart = await prisma.cart.delete({
+      where: { id: cartId },
+    });
+
+    return {
+      rowsAffected: deletedCart ? 1 : 0,
+    };
+  } catch (err) {
+    if (err.code === "P2025") {
+      return {
+        rowsAffected: 0,
+      };
+    }
+    console.error("Error while deleting cart:", err);
+    throw err;
+  }
+}
