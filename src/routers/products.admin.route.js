@@ -5,7 +5,7 @@ import {
   detailProductAdmin,
   listProductsAdmin,
   updateProduct,
-} from "../controllers/products.controller.js";
+} from "../controllers/products.admin.controller.js";
 import { cache } from "../middlewares/caching.js";
 
 /**
