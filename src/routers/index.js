@@ -3,7 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { adminOnly } from "../middlewares/adminOnly.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
-import authRouter from "./auth.router.js";
+import authRouter from "./auth.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
 import profilesRouter from "./profiles.route.js";
