@@ -6,22 +6,34 @@ import { Pool } from "pg";
 
 const connectionString = process.env.DATABASE_URL;
 
-const pool = new Pool({
-  connectionString,
-});
+let poolInstance;
+let prismaInstance;
 
-attachDatabasePool(pool);
-
-const adapter = new PrismaPg({ pool });
-
-const globalForPrisma = globalThis;
-
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    adapter,
-  });
-
-if (process.env.ENVIRONMENT !== "production") {
-  globalForPrisma.prisma = prisma;
+function getPool() {
+  if (!poolInstance) {
+    poolInstance = new Pool({
+      connectionString,
+      max: 1,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    });
+    attachDatabasePool(poolInstance);
+  }
+  return poolInstance;
 }
+
+export function getPrisma() {
+  if (!prismaInstance) {
+    const adapter = new PrismaPg({ pool: getPool() });
+    prismaInstance = new PrismaClient({
+      adapter,
+      log:
+        process.env.ENVIRONMENT !== "production"
+          ? ["error", "warn"]
+          : ["error"],
+    });
+  }
+  return prismaInstance;
+}
+
+export const prisma = getPrisma();

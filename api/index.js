@@ -6,13 +6,14 @@ import router from "../src/routers/index.js";
 
 const app = express();
 
-initDocs(app);
+try {
+  initDocs(app);
+} catch (error) {
+  console.error("Error initializing docs:", error);
+}
 
 app.use(urlencoded({ extended: true }));
-
 app.use(json());
-
-app.use("/", router);
 
 app.get("/", (req, res) => {
   res.json({
@@ -21,4 +22,16 @@ app.get("/", (req, res) => {
   });
 });
 
-export default serverless(app);
+app.use("/", router);
+
+app.use((err, req, res) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
+  });
+});
+
+export default serverless(app, {
+  binary: ["image/*", "application/pdf"],
+});
