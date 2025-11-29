@@ -517,3 +517,59 @@ export async function deleteDataProduct(productId) {
     throw err;
   }
 }
+
+export async function getListFavouriteProducts(limit) {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isFavourite: true,
+        isActive: true,
+      },
+      take: limit,
+      orderBy: {
+        id: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        discountPercent: true,
+        isFlashSale: true,
+        isFavourite: true,
+        productImages: {
+          where: {
+            isPrimary: true,
+          },
+          select: {
+            productImage: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const formattedProducts = products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      discountPercent: product.discountPercent || 0,
+      discountPrice:
+        product.discountPercent && product.discountPercent > 0
+          ? product.price * (1 - product.discountPercent / 100)
+          : 0,
+      isFlashSale: product.isFlashSale,
+      isFavourite: product.isFavourite,
+      productImage:
+        product.productImages.length > 0
+          ? product.productImages[0].productImage
+          : "",
+    }));
+
+    return formattedProducts;
+  } catch (err) {
+    console.error("Error while fetching favourite products: ", err);
+    throw err;
+  }
+}
