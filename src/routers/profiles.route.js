@@ -1,13 +1,13 @@
 import express from "express";
 import {
-  detailProfiles,
+  detailProfile,
   updateProfile,
   uploadProfilePhoto,
 } from "../controllers/profiles.controller.js";
 
 const router = express();
 
-router.get("", detailProfiles);
+router.get("", detailProfile);
 router.patch("", updateProfile);
 router.patch("/photo", uploadProfilePhoto);
 
