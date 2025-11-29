@@ -7,6 +7,7 @@ import authRouter from "./auth.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
 import profilesRouter from "./profiles.route.js";
+import transactionsRouter from "./transactions.route.js";
 import usersRouter from "./users.admin.route.js";
 
 const router = Router();
@@ -17,6 +18,12 @@ router.use("/auth", authRouter);
 // admin
 router.use("/admin/users", authMiddleware, adminOnly, usersRouter);
 router.use("/admin/products", authMiddleware, adminOnly, productsRouter);
+router.use(
+  "/admin/transactions",
+  authMiddleware,
+  adminOnly,
+  transactionsRouter
+);
 
 // public
 router.use("", productsPublicRouter);
