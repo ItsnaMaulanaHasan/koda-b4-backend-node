@@ -61,6 +61,15 @@ import {
  *         application/x-www-form-urlencoded:
  *           schema:
  *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Incorrect email or password
+ *       500:
+ *         description: Internal server error
  */
 export async function login(req, res) {
   try {
@@ -135,6 +144,15 @@ export async function login(req, res) {
  *         application/x-www-form-urlencoded:
  *           schema:
  *             $ref: '#/components/schemas/RegisterRequest'
+ *     responses:
+ *       201:
+ *         description: Register success
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Email already registered
+ *       500:
+ *         description: Internal server error
  */
 export async function register(req, res) {
   try {
