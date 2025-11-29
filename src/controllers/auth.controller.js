@@ -10,45 +10,6 @@ import {
 
 /**
  * @openapi
- * components:
- *   schemas:
- *     LoginRequest:
- *       type: object
- *       required:
- *         - email
- *         - password
- *       properties:
- *         email:
- *           type: string
- *           example: user@example.com
- *         password:
- *           type: string
- *           example: Password@123
- *
- *     RegisterRequest:
- *       type: object
- *       required:
- *         - fullName
- *         - email
- *         - password
- *       properties:
- *         fullName:
- *           type: string
- *           example: Daily Greens
- *         email:
- *           type: string
- *           example: greens@example.com
- *         password:
- *           type: string
- *           example: Password@123
- *         role:
- *           type: string
- *           enum: [customer, admin]
- *           example: customer
- */
-
-/**
- * @openapi
  * /auth/login:
  *   post:
  *     summary: Login user
