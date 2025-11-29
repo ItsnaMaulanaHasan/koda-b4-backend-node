@@ -5,7 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix .",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
