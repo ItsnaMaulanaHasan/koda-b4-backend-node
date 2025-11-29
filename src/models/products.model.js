@@ -573,3 +573,150 @@ export async function getListFavouriteProducts(limit) {
     throw err;
   }
 }
+
+export async function getDetailProductPublic(id) {
+  try {
+    const product = await prisma.product.findUnique({
+      where: {
+        id: id,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        discountPercent: true,
+        rating: true,
+        isFlashSale: true,
+        stock: true,
+        productImages: {
+          select: {
+            productImage: true,
+          },
+        },
+        productCategories: {
+          select: {
+            category: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        productSizes: {
+          select: {
+            size: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        productVariants: {
+          select: {
+            variant: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!product) {
+      return null;
+    }
+
+    const categoryIds = product.productCategories.map((pc) => pc.category.id);
+
+    const recommendations = await prisma.product.findMany({
+      where: {
+        id: { not: id },
+        isActive: true,
+        productCategories: {
+          some: {
+            categoryId: {
+              in: categoryIds,
+            },
+          },
+        },
+      },
+      take: 5,
+      orderBy: {
+        id: "asc",
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        discountPercent: true,
+        isFlashSale: true,
+        isFavourite: true,
+        productImages: {
+          where: {
+            isPrimary: true,
+          },
+          select: {
+            productImage: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const shuffledRecommendations = recommendations
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 5);
+
+    const formattedProduct = {
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      discountPercent: product.discountPercent || 0,
+      discountPrice:
+        product.discountPercent && product.discountPercent > 0
+          ? product.price * (1 - product.discountPercent / 100)
+          : 0,
+      rating: product.rating || 0,
+      isFlashSale: product.isFlashSale,
+      stock: product.stock || 0,
+      productImages: product.productImages.map((img) => img.productImage),
+      productCategories: product.productCategories.map(
+        (pc) => pc.category.name
+      ),
+      productSizes: product.productSizes.map((ps) => ({
+        id: ps.size.id,
+        size: ps.size.name,
+      })),
+      productVariants: product.productVariants.map((pv) => ({
+        id: pv.variant.id,
+        variant: pv.variant.name,
+      })),
+      recommendations: shuffledRecommendations.map((rec) => ({
+        id: rec.id,
+        name: rec.name,
+        description: rec.description,
+        price: rec.price,
+        discountPercent: rec.discountPercent || 0,
+        discountPrice:
+          rec.discountPercent && rec.discountPercent > 0
+            ? rec.price * (1 - rec.discountPercent / 100)
+            : 0,
+        isFlashSale: rec.isFlashSale,
+        isFavourite: rec.isFavourite,
+        productImage:
+          rec.productImages.length > 0 ? rec.productImages[0].productImage : "",
+      })),
+    };
+
+    return formattedProduct;
+  } catch (err) {
+    console.error("Error while fetching product detail:", err);
+    throw err;
+  }
+}

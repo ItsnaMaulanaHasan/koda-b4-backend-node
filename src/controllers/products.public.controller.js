@@ -63,3 +63,66 @@ export async function favouriteProducts(req, res) {
     });
   }
 }
+
+import { getDetailProductPublic } from "../models/products.model.js";
+
+/**
+ * @openapi
+ * /products/{id}:
+ *   get:
+ *     summary: Get product by Id
+ *     tags:
+ *       - products
+ *     description: Retrieving product data based on Id for public
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: Product Id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           example: 1
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved product
+ *       400:
+ *         description: Invalid Id format
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error while fetching products from database
+ */
+export async function detailProductPublic(req, res) {
+  try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id) || id <= 0) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Id format",
+      });
+      return;
+    }
+
+    const product = await getDetailProductPublic(id);
+    if (!product) {
+      res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Success get detail product",
+      data: product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get detail product",
+      error: err.message,
+    });
+  }
+}
