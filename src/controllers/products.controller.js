@@ -15,52 +15,39 @@ import {
 } from "../models/products.model.js";
 
 /**
- * Create product request body
- * @typedef {object} CreateProductRequest
- * @property {array<string>} fileImages - Product images (max 4 files) - binary
- * @property {string} name.required - Product name - eg: Americano
- * @property {string} description.required - Product description - eg: Classic black coffee
- * @property {number} price.required - Product price - eg: 25000
- * @property {number} discountPercent - Discount percentage (0-100) - eg: 10
- * @property {number} rating - Product rating (0-5) - eg: 5
- * @property {integer} stock.required - Product stock - eg: 100
- * @property {boolean} isFlashSale - Is flash sale product - eg: false
- * @property {boolean} isActive - Is active product - eg: true
- * @property {boolean} isFavourite - Is favourite product - eg: false
- * @property {string} sizeProducts - Size IDs (comma-separated) - eg: 1,2,3
- * @property {string} productCategories - Category IDs (comma-separated) - eg: 1,2
- * @property {string} productVariants - Variant IDs (comma-separated) - eg: 1,2
- */
-
-/**
- * Update product request body
- * @typedef {object} UpdateProductRequest
- * @property {array<string>} fileImages - Product images (max 4 files, optional) - binary
- * @property {string} name - Product name - eg: Americano
- * @property {string} description - Product description - eg: Classic black coffee
- * @property {number} price - Product price - eg: 25000
- * @property {number} discountPercent - Discount percentage (0-100) - eg: 10
- * @property {number} rating - Product rating (0-5) - eg: 5
- * @property {integer} stock - Product stock - eg: 100
- * @property {boolean} isFlashSale - Is flash sale product - eg: false
- * @property {boolean} isActive - Is active product - eg: true
- * @property {boolean} isFavourite - Is favourite product - eg: false
- * @property {string} sizeProducts - Size IDs (comma-separated) - eg: 1,2,3
- * @property {string} productCategories - Category IDs (comma-separated) - eg: 1,2
- * @property {string} productVariants - Variant IDs (comma-separated) - eg: 1,2
- */
-
-/**
- * GET /admin/products
- * @summary Get list of all products
- * @tags admin/products
- * @description Retrieve paginated list of products with optional search filter
- * @security BearerAuth
- * @param {string} search.query - Search products by name
- * @param {number} page.query - Current page number (default: 1)
- * @param {number} limit.query - Number of products per page (default: 10)
- * @return {object} 200 - Successfully retrieved list of products
- * @return {object} 500 - Failed to retrieve list of products
+ * @openapi
+ * /admin/products:
+ *   get:
+ *     summary: Get list of all products
+ *     tags:
+ *       - admin/products
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieve paginated list of products with optional search filter
+ *     parameters:
+ *       - name: search
+ *         in: query
+ *         description: Search products by name
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         description: Current page number
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         description: Items per page
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved list of products
+ *       500:
+ *         description: Failed to retrieve list products
  */
 export async function listProductsAdmin(req, res) {
   try {
@@ -94,15 +81,28 @@ export async function listProductsAdmin(req, res) {
 }
 
 /**
- * GET /admin/products/{id}
- * @summary Get product detail by Id
- * @tags admin/products
- * @description Retrieve detail information of a product by their unique Id
- * @security BearerAuth
- * @param {number} id.path.required - Id of the product
- * @return {object} 200 - Success get detail of product
- * @return {object} 404 - Product not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/products/{id}:
+ *   get:
+ *     summary: Get product detail by Id
+ *     tags:
+ *       - admin/products
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieve detail information of a product by Id
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Success get detail product
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
  */
 export async function detailProductAdmin(req, res) {
   try {
@@ -132,16 +132,30 @@ export async function detailProductAdmin(req, res) {
 }
 
 /**
- * POST /admin/products
- * @summary Create product
- * @tags admin/products
- * @description Create a new product with multiple images, sizes, categories, and variants
- * @security BearerAuth
- * @param {CreateProductRequest} request.body.required - Product data - multipart/form-data
- * @return {object} 201 - Create product success
- * @return {object} 400 - Validation error or upload error
- * @return {object} 409 - Product name already exists
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/products:
+ *   post:
+ *     summary: Create product
+ *     tags:
+ *       - admin/products
+ *     security:
+ *       - BearerAuth: []
+ *     description: Create a new product with images, sizes, categories, and variants
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateProductRequest'
+ *     responses:
+ *       201:
+ *         description: Product created successfully
+ *       400:
+ *         description: Validation error or upload error
+ *       409:
+ *         description: Product name already exists
+ *       500:
+ *         description: Internal server error
  */
 export async function createProduct(req, res) {
   upload.array("fileImages", 4)(req, res, async function (err) {
@@ -271,18 +285,38 @@ export async function createProduct(req, res) {
 }
 
 /**
- * PATCH /admin/products/{id}
- * @summary Update product
- * @tags admin/products
- * @description Update an existing product with images, sizes, categories, and variants
- * @security BearerAuth
- * @param {number} id.path.required - Id of the product
- * @param {UpdateProductRequest} request.body.required - Product data - multipart/form-data
- * @return {object} 200 - Update product success
- * @return {object} 400 - Validation error or upload error
- * @return {object} 404 - Product not found
- * @return {object} 409 - Product name already exists
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/products/{id}:
+ *   patch:
+ *     summary: Update product
+ *     tags:
+ *       - admin/products
+ *     security:
+ *       - BearerAuth: []
+ *     description: Update an existing product with optional images and related data
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateProductRequest'
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *       400:
+ *         description: Validation error or upload error
+ *       404:
+ *         description: Product not found
+ *       409:
+ *         description: Product name already exists
+ *       500:
+ *         description: Internal server error
  */
 export async function updateProduct(req, res) {
   upload.array("fileImages", 4)(req, res, async function (err) {
@@ -290,7 +324,6 @@ export async function updateProduct(req, res) {
     let oldImages = [];
 
     try {
-      // Handle multer upload errors
       if (err instanceof MulterError) {
         res.status(400).json({
           success: false,
@@ -307,7 +340,6 @@ export async function updateProduct(req, res) {
         return;
       }
 
-      // Validate product ID
       const productId = Number(req.params.id);
       if (isNaN(productId) || productId <= 0) {
         res.status(400).json({
@@ -317,7 +349,6 @@ export async function updateProduct(req, res) {
         return;
       }
 
-      // Validate request body
       const result = validationResult(req);
       if (!result.isEmpty()) {
         res.status(400).json({
@@ -328,7 +359,6 @@ export async function updateProduct(req, res) {
         return;
       }
 
-      // Check if product exists
       const existingProduct = await getDetailProduct(productId);
       if (!existingProduct) {
         res.status(404).json({
@@ -338,10 +368,8 @@ export async function updateProduct(req, res) {
         return;
       }
 
-      // Save old images for cleanup if update succeeds
       oldImages = existingProduct.productImages || [];
 
-      // Check product name uniqueness (if name is being updated)
       if (req.body.name && req.body.name !== existingProduct.name) {
         const nameExists = await checkProductNameForUpdate(
           req.body.name,
@@ -356,7 +384,6 @@ export async function updateProduct(req, res) {
         }
       }
 
-      // Get user ID from token
       const userId = req.user.id;
       if (!userId) {
         res.status(401).json({
@@ -456,15 +483,28 @@ export async function updateProduct(req, res) {
 }
 
 /**
- * DELETE /admin/products/{id}
- * @summary Delete product
- * @tags admin/products
- * @description Delete product permanently from the system
- * @security BearerAuth
- * @param {number} id.path.required - Id of the product
- * @return {object} 200 - Delete product success
- * @return {object} 404 - Product not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/products/{id}:
+ *   delete:
+ *     summary: Delete product
+ *     tags:
+ *       - admin/products
+ *     security:
+ *       - BearerAuth: []
+ *     description: Delete product permanently
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found
+ *       500:
+ *         description: Internal server error
  */
 export async function deleteProduct(req, res) {
   try {
