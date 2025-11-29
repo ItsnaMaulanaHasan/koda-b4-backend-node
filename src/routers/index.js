@@ -4,6 +4,7 @@ import process from "node:process";
 import { adminOnly } from "../middlewares/adminOnly.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import authRouter from "./auth.route.js";
+import historiesRouter from "./histories.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
 import profilesRouter from "./profiles.route.js";
@@ -28,6 +29,7 @@ router.use(
 // public
 router.use("", productsPublicRouter);
 router.use("/profiles", authMiddleware, profilesRouter);
+router.use("/histories", authMiddleware, historiesRouter);
 
 // serving static file
 router.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
