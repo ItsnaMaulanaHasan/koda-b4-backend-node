@@ -1,8 +1,8 @@
 import "dotenv/config";
 import express, { json, urlencoded } from "express";
 import serverless from "serverless-http";
-import initDocs from "./src/lib/docs.js";
-import router from "./src/routers/index.js";
+import initDocs from "../src/lib/docs.js";
+import router from "../src/routers/index.js";
 
 const app = express();
 
