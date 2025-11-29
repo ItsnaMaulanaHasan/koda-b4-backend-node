@@ -1,39 +1,12 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
-import { attachDatabasePool } from "@vercel/functions";
+import pkg from "@prisma/client";
 import process from "node:process";
-import { Pool } from "pg";
 
-const connectionString = process.env.DATABASE_URL;
+const { PrismaClient } = pkg;
 
-let poolInstance;
-let prismaInstance;
+const connectionString = `${process.env.DATABASE_URL}`;
 
-function getPool() {
-  if (!poolInstance) {
-    poolInstance = new Pool({
-      connectionString,
-      max: 1,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-    attachDatabasePool(poolInstance);
-  }
-  return poolInstance;
-}
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
-export function getPrisma() {
-  if (!prismaInstance) {
-    const adapter = new PrismaPg({ pool: getPool() });
-    prismaInstance = new PrismaClient({
-      adapter,
-      log:
-        process.env.ENVIRONMENT !== "production"
-          ? ["error", "warn"]
-          : ["error"],
-    });
-  }
-  return prismaInstance;
-}
-
-export const prisma = getPrisma();
+export { prisma };
