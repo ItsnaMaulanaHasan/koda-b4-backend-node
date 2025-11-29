@@ -11,15 +11,24 @@ import {
 } from "../models/profiles.model.js";
 
 /**
- * GET /profiles
- * @summary Get detail profile
- * @tags profiles
- * @description Retrieving detail profile based on Id in token
- * @security BearerAuth
- * @return {object} 200 - Successfully retrieved user
- * @return {object} 401 - User Id not found in token
- * @return {object} 404 - User not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /profiles:
+ *   get:
+ *     summary: Get detail profile
+ *     tags:
+ *       - profiles
+ *     description: Retrieving detail profile based on Id in JWT token
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user profile
+ *       401:
+ *         description: User Id not found in token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 export async function detailProfile(req, res) {
   try {
@@ -55,20 +64,45 @@ export async function detailProfile(req, res) {
 }
 
 /**
- * PATCH /profiles
- * @summary Update profile
- * @tags profiles
- * @description Updating user profile based on Id from token
- * @security BearerAuth
- * @param {string} fullName.form - User fullname
- * @param {string} email.form - User email
- * @param {string} phone.form - User phone
- * @param {string} address.form - User address
- * @return {object} 200 - User updated successfully
- * @return {object} 400 - Invalid request body
- * @return {object} 401 - User Id not found in token
- * @return {object} 404 - User not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /profiles:
+ *   patch:
+ *     summary: Update profile
+ *     tags:
+ *       - profiles
+ *     description: Update profile data based on Id in token
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *                 example: Daily Greens
+ *               email:
+ *                 type: string
+ *                 example: greens@gmail.com
+ *               phone:
+ *                 type: string
+ *                 example: 628123456789
+ *               address:
+ *                 type: string
+ *                 example: Jl. Pancoran No. 123
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Invalid request body
+ *       401:
+ *         description: User Id not found in token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 export async function updateProfile(req, res) {
   try {
@@ -113,17 +147,39 @@ export async function updateProfile(req, res) {
 }
 
 /**
- * PATCH /profiles/photo
- * @summary Upload photo profile user
- * @tags profiles
- * @description Upload photo profile user data based on Id from token
- * @security BearerAuth
- * @param {file} profilePhoto.formData - Profile photo (JPEG/PNG, max 3MB)
- * @return {object} 200 - User updated successfully
- * @return {object} 400 - Invalid request body or file error
- * @return {object} 401 - User Id not found in token
- * @return {object} 404 - User not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /profiles/photo:
+ *   patch:
+ *     summary: Upload photo profile user
+ *     tags:
+ *       - profiles
+ *     description: Upload profile photo (JPEG/PNG, max 3MB)
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - profilePhoto
+ *             properties:
+ *               profilePhoto:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile photo file (jpg/png)
+ *     responses:
+ *       200:
+ *         description: Profile photo uploaded successfully
+ *       400:
+ *         description: File error or invalid request
+ *       401:
+ *         description: User Id not found in token
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 export async function uploadProfilePhoto(req, res) {
   upload.single("profilePhoto")(req, res, async function (err) {
