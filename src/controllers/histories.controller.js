@@ -1,4 +1,7 @@
-import { getListHistories } from "../models/histories.model.js";
+import {
+  getDetailHistory,
+  getListHistories,
+} from "../models/histories.model.js";
 
 /**
  * @openapi
@@ -145,4 +148,63 @@ export async function listHistories(req, res) {
   }
 }
 
-export async function detailHistory() {}
+/**
+ * @openapi
+ * /histories/{noinvoice}:
+ *   get:
+ *     summary: Get detail history
+ *     tags:
+ *       - histories
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieving history detail data based on invoice number including transaction items
+ *     parameters:
+ *       - name: noinvoice
+ *         in: path
+ *         description: Invoice number
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: INV-2024-001
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved history detail
+ *       404:
+ *         description: History not found
+ *       500:
+ *         description: Internal server error while fetching history from database
+ */
+export async function detailHistory(req, res) {
+  try {
+    const noInvoice = req.params.noinvoice;
+
+    if (!noInvoice) {
+      res.status(400).json({
+        success: false,
+        message: "Invoice number is required",
+      });
+      return;
+    }
+
+    const historyDetail = await getDetailHistory(noInvoice);
+
+    if (!historyDetail) {
+      res.status(404).json({
+        success: false,
+        message: "History not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Success get transaction detail",
+      data: historyDetail,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get detail history",
+      error: err.message,
+    });
+  }
+}
