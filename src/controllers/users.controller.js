@@ -15,39 +15,99 @@ import {
 } from "../models/users.model.js";
 
 /**
- * Create user request body
- * @typedef {object} CreateUserRequest
- * @property {string} filePhoto - User profile photo - binary
- * @property {string} fullName.required - Full name of user - eg: John Doe
- * @property {string} email.required - Email of user - eg: john@example.com
- * @property {string} password.required - Password (min 8 chars with uppercase, lowercase, number, special char) - eg: Password123!
- * @property {string} phone - Phone number of user - eg: +6281234567890
- * @property {string} address - Address of user - eg: Jl. Example No. 123
- * @property {string} role - Role of user - enum:customer,admin - eg: customer
+ * @openapi
+ * components:
+ *   schemas:
+ *     CreateUserRequest:
+ *       type: object
+ *       required:
+ *         - fullName
+ *         - email
+ *         - password
+ *       properties:
+ *         filePhoto:
+ *           type: string
+ *           format: binary
+ *         fullName:
+ *           type: string
+ *           example: Daily Greens
+ *         email:
+ *           type: string
+ *           example: greens@example.com
+ *         password:
+ *           type: string
+ *           example: Password@123
+ *         phone:
+ *           type: string
+ *           example: +6281234567890
+ *         address:
+ *           type: string
+ *           example: Jl. Pancoran No. 123
+ *         role:
+ *           type: string
+ *           enum: [customer, admin]
+ *           example: customer
+ *
+ *     UpdateUserRequest:
+ *       type: object
+ *       properties:
+ *         filePhoto:
+ *           type: string
+ *           format: binary
+ *         fullName:
+ *           type: string
+ *           example: Daily Greens
+ *         email:
+ *           type: string
+ *           example: greens@example.com
+ *         phone:
+ *           type: string
+ *           example: +6281234567890
+ *         address:
+ *           type: string
+ *           example: Jl. Pancoran No. 123
+ *         role:
+ *           type: string
+ *           enum: [customer, admin]
+ *           example: customer
  */
 
 /**
- * Update user request body
- * @typedef {object} UpdateUserRequest
- * @property {string} filePhoto - User profile photo - binary
- * @property {string} fullName - Full name of user - eg: John Doe
- * @property {string} email - Email of user - eg: john@example.com
- * @property {string} phone - Phone number of user - eg: +6281234567890
- * @property {string} address - Address of user - eg: Jl. Example No. 123
- * @property {string} role - Role of user - enum:customer,admin - eg: customer
- */
-
-/**
- * GET /admin/users
- * @summary Get list of all users
- * @tags admin/users
- * @description Retrieve paginated list of users with optional search filter
- * @security BearerAuth
- * @param {string} search.query - Search users by full name
- * @param {number} page.query - Current page number (default: 1)
- * @param {number} limit.query - Number of users per page (default: 10)
- * @return {object} 200 - Successfully retrieved list of users
- * @return {object} 500 - Failed to retrieve list of users
+ * @openapi
+ * /admin/users:
+ *   get:
+ *     summary: Get list of all users
+ *     tags:
+ *       - admin/users
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieve paginated list of users with optional search filter
+ *     parameters:
+ *       - name: search
+ *         in: query
+ *         description: Search users by full name
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - name: page
+ *         in: query
+ *         description: Page number
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - name: limit
+ *         in: query
+ *         description: Number of items per page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved list of users
+ *       500:
+ *         description: Failed to retrieve list users
  */
 export async function listUsers(req, res) {
   try {
@@ -82,15 +142,28 @@ export async function listUsers(req, res) {
 }
 
 /**
- * GET /admin/users/{id}
- * @summary Get user detail by Id
- * @tags admin/users
- * @description Retrieve detail information of a user by their unique Id
- * @security BearerAuth
- * @param {number} id.path.required - Id of the user
- * @return {object} 200 - Success get detail of user
- * @return {object} 404 - User not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/users/{id}:
+ *   get:
+ *     summary: Get user detail by Id
+ *     tags:
+ *       - admin/users
+ *     security:
+ *       - BearerAuth: []
+ *     description: Retrieve detail information of a user by their unique Id
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Success get detail of user
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 export async function detailUser(req, res) {
   try {
@@ -120,16 +193,30 @@ export async function detailUser(req, res) {
 }
 
 /**
- * POST /admin/users
- * @summary Create user
- * @tags admin/users
- * @description Create a new user with optional profile photo upload
- * @param {CreateUserRequest} request.body.required - User data - multipart/form-data
- * @security BearerAuth
- * @return {object} 201 - Create user success
- * @return {object} 400 - Validation error or upload error
- * @return {object} 409 - Email already registered
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/users:
+ *   post:
+ *     summary: Create user
+ *     tags:
+ *       - admin/users
+ *     security:
+ *       - BearerAuth: []
+ *     description: Create a new user with optional profile photo upload
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateUserRequest'
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Validation error or upload error
+ *       409:
+ *         description: Email already registered
+ *       500:
+ *         description: Internal server error
  */
 export async function createUser(req, res) {
   upload.single("filePhoto")(req, res, async function (err) {
@@ -205,18 +292,38 @@ export async function createUser(req, res) {
 }
 
 /**
- * PATCH /admin/users/{id}
- * @summary Update user
- * @tags admin/users
- * @description Update user data with optional profile photo upload
- * @security BearerAuth
- * @param {number} id.path.required - Id of the user
- * @param {UpdateUserRequest} request.body.required - User data to update - multipart/form-data
- * @return {object} 200 - Update user success
- * @return {object} 400 - Validation error or upload error
- * @return {object} 404 - User not found
- * @return {object} 409 - Email already registered
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/users/{id}:
+ *   patch:
+ *     summary: Update user
+ *     tags:
+ *       - admin/users
+ *     security:
+ *       - BearerAuth: []
+ *     description: Update user data with optional profile photo upload
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             $ref: '#/components/schemas/UpdateUserRequest'
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       400:
+ *         description: Validation error or upload error
+ *       404:
+ *         description: User not found
+ *       409:
+ *         description: Email already registered
+ *       500:
+ *         description: Internal server error
  */
 export async function updateUser(req, res) {
   upload.single("filePhoto")(req, res, async function (err) {
@@ -309,15 +416,28 @@ export async function updateUser(req, res) {
 }
 
 /**
- * DELETE /admin/users/{id}
- * @summary Delete user
- * @tags admin/users
- * @description Delete user permanently from the system
- * @security BearerAuth
- * @param {number} id.path.required - Id of the user
- * @return {object} 200 - Delete user success
- * @return {object} 404 - User not found
- * @return {object} 500 - Internal server error
+ * @openapi
+ * /admin/users/{id}:
+ *   delete:
+ *     summary: Delete user
+ *     tags:
+ *       - admin/users
+ *     security:
+ *       - BearerAuth: []
+ *     description: Delete user permanently from the system
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
  */
 export async function deleteUser(req, res) {
   try {
