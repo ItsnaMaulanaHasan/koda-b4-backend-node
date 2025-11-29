@@ -20,7 +20,7 @@ router.use("/admin/products", authMiddleware, adminOnly, productsRouter);
 
 // public
 router.use("", productsPublicRouter);
-router.use("/profiles", profilesRouter);
+router.use("/profiles", authMiddleware, profilesRouter);
 
 // serving static file
 router.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
