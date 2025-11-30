@@ -48,19 +48,20 @@ export async function getListCart(userId) {
           ? cart.product.productImages[0].productImage
           : "",
       productName: cart.product.name,
-      productPrice: cart.product.price,
+      productPrice: Number(cart.product.price),
       isFlashSale: cart.product.isFlashSale,
-      discountPercent: cart.product.discountPercent || 0,
-      discountPrice:
+      discountPercent: Number(cart.product.discountPercent || 0),
+      discountPrice: Number(
         cart.product.discountPercent && cart.product.discountPercent > 0
           ? cart.product.price * (1 - cart.product.discountPercent / 100)
-          : 0,
+          : 0
+      ),
       sizeName: cart.size?.name || "",
-      sizeCost: cart.size?.sizeCost || 0,
+      sizeCost: Number(cart.size?.sizeCost || 0),
       variantName: cart.variant?.name || "",
-      variantCost: cart.variant?.variantCost || 0,
+      variantCost: Number(cart.variant?.variantCost || 0),
       amount: cart.amount,
-      subtotal: cart.subtotal,
+      subtotal: Number(cart.subtotal),
     }));
 
     return formattedCarts;
@@ -108,11 +109,13 @@ export async function addToCart(bodyAdd) {
         throw new Error("Size or variant not found");
       }
 
-      const discountPercent = product.discountPercent || 0;
-      const discountedPrice = product.price * (1 - discountPercent / 100);
+      const discountPercent = Number(product.discountPercent || 0);
+      const productPrice = Number(product.price);
+      const discountedPrice = productPrice * (1 - discountPercent / 100);
 
-      const pricePerItem =
-        discountedPrice + size.sizeCost + variant.variantCost;
+      const sizeCost = Number(size.sizeCost || 0);
+      const variantCost = Number(variant.variantCost || 0);
+      const pricePerItem = discountedPrice + sizeCost + variantCost;
       const subtotal = pricePerItem * bodyAdd.amount;
 
       const existingCart = await tx.cart.findFirst({

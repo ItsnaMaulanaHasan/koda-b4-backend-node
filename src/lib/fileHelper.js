@@ -14,7 +14,6 @@ export function extractFilenameFromUrl(url) {
 
 export function getProductFilePath(url) {
   const filename = extractFilenameFromUrl(url);
-  console.log("File name:", filename);
   return path.join(process.cwd(), "uploads", "products", filename);
 }
 
