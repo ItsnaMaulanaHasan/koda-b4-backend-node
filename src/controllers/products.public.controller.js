@@ -1,3 +1,4 @@
+import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import {
   getDetailProductPublic,
   getListFavouriteProducts,
@@ -228,10 +229,13 @@ export async function listProductsPublic(req, res) {
       page
     );
 
+    const links = buildHateoasPagination(req, page, limit, totalData);
+
     res.status(200).json({
       success: true,
       message: "Success get all product",
       data: products,
+      _links: links,
       meta: {
         currentPage: page,
         perPage: limit,

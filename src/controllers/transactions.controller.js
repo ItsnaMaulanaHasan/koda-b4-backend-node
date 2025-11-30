@@ -1,3 +1,4 @@
+import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import { invalidateCache } from "../middlewares/caching.js";
 import { getListCart } from "../models/carts.model.js";
 import {
@@ -110,10 +111,13 @@ export async function listTransactions(req, res) {
       status
     );
 
+    const links = buildHateoasPagination(req, page, limit, totalData);
+
     res.status(200).json({
       success: true,
       message: "Success get all transaction",
       data: transactions,
+      _links: links,
       meta: {
         currentPage: page,
         perPage: limit,

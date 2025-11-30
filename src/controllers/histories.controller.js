@@ -1,3 +1,4 @@
+import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import {
   getDetailHistory,
   getListHistories,
@@ -128,10 +129,13 @@ export async function listHistories(req, res) {
       return;
     }
 
+    const links = buildHateoasPagination(req, page, limit, result.totalData);
+
     res.status(200).json({
       success: true,
       message: "Successfully retrieved transaction histories",
       data: result.histories,
+      _links: links,
       meta: {
         currentPage: page,
         perPage: limit,

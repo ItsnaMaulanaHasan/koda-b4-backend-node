@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import { MulterError } from "multer";
 import process from "node:process";
 import { deleteFileIfExists, getUserFilePath } from "../lib/fileHelper.js";
+import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import upload from "../lib/upload.js";
 import { invalidateCache } from "../middlewares/caching.js";
 import {
@@ -85,10 +86,13 @@ export async function listUsers(req, res) {
     const totalData = await getTotalDataUsers(search);
     const listUsers = await getListUsers(search, page, limit);
 
+    const links = buildHateoasPagination(req, page, limit, totalData);
+
     res.json({
       success: true,
       message: "Success get list users",
       data: listUsers,
+      _links: links,
       meta: {
         page,
         limit,

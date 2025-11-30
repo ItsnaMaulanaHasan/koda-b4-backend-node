@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import fs from "fs";
 import { MulterError } from "multer";
 import { deleteFileIfExists, getProductFilePath } from "../lib/fileHelper.js";
+import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import upload from "../lib/upload.js";
 import { invalidateCache } from "../middlewares/caching.js";
 import {
@@ -83,10 +84,13 @@ export async function listProductsAdmin(req, res) {
     const totalData = await getTotalDataProducts(search);
     const listProducts = await getListProductsAdmin(search, page, limit);
 
+    const links = buildHateoasPagination(req, page, limit, totalData);
+
     res.json({
       success: true,
       message: "Success get list products",
       data: listProducts,
+      _links: links,
       meta: {
         page,
         limit,
