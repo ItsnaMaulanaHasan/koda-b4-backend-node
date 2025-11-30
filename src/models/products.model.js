@@ -576,6 +576,165 @@ export async function getListFavouriteProducts(limit) {
   }
 }
 
+export async function totalDataProductsPublic(q, cat, maxPrice, minPrice) {
+  try {
+    const whereClause = {
+      isActive: true,
+    };
+
+    if (q) {
+      whereClause.name = {
+        contains: q,
+        mode: "insensitive",
+      };
+    }
+
+    if (cat && cat.length > 0) {
+      whereClause.productCategories = {
+        some: {
+          category: {
+            name: {
+              in: cat,
+            },
+          },
+        },
+      };
+    }
+
+    if (minPrice > 0 || maxPrice > 0) {
+      whereClause.price = {};
+      if (minPrice > 0) {
+        whereClause.price.gte = minPrice;
+      }
+      if (maxPrice > 0) {
+        whereClause.price.lte = maxPrice;
+      }
+    }
+
+    const totalData = await prisma.product.count({
+      where: whereClause,
+    });
+
+    return totalData;
+  } catch (err) {
+    console.error("Error while counting products:", err);
+    throw err;
+  }
+}
+
+export async function getListProductsPublic(
+  q,
+  cat,
+  sort,
+  maxPrice,
+  minPrice,
+  limit,
+  page
+) {
+  try {
+    const offset = (page - 1) * limit;
+
+    const whereClause = {
+      isActive: true,
+    };
+
+    if (q) {
+      whereClause.name = {
+        contains: q,
+        mode: "insensitive",
+      };
+    }
+
+    if (cat && cat.length > 0) {
+      whereClause.productCategories = {
+        some: {
+          category: {
+            name: {
+              in: cat,
+            },
+          },
+        },
+      };
+    }
+
+    if (minPrice > 0 || maxPrice > 0) {
+      whereClause.price = {};
+      if (minPrice > 0) {
+        whereClause.price.gte = minPrice;
+      }
+      if (maxPrice > 0) {
+        whereClause.price.lte = maxPrice;
+      }
+    }
+
+    let orderBy = { id: "asc" };
+    if (sort) {
+      switch (sort) {
+        case "name_asc":
+          orderBy = { name: "asc" };
+          break;
+        case "name_desc":
+          orderBy = { name: "desc" };
+          break;
+        case "price_asc":
+          orderBy = { price: "asc" };
+          break;
+        case "price_desc":
+          orderBy = { price: "desc" };
+          break;
+      }
+    }
+
+    const products = await prisma.product.findMany({
+      where: whereClause,
+      take: limit,
+      skip: offset,
+      orderBy: orderBy,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        price: true,
+        discountPercent: true,
+        isFlashSale: true,
+        isFavourite: true,
+        productImages: {
+          where: {
+            isPrimary: true,
+          },
+          select: {
+            productImage: true,
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const formattedProducts = products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      discountPercent: product.discountPercent || 0,
+      discountPrice:
+        product.discountPercent && product.discountPercent > 0
+          ? product.price * (1 - product.discountPercent / 100)
+          : 0,
+      isFlashSale: product.isFlashSale,
+      isFavourite: product.isFavourite,
+      productImage:
+        product.productImages.length > 0
+          ? product.productImages[0].productImage
+          : "",
+    }));
+
+    return formattedProducts;
+  } catch (err) {
+    console.error("Error while fetching products:", err);
+    throw err;
+  }
+}
+
 export async function getDetailProductPublic(id) {
   try {
     const product = await prisma.product.findUnique({
