@@ -225,3 +225,124 @@ export async function updateTransactionStatusById(
     throw err;
   }
 }
+
+export async function getDeliveryFeeAndAdminFee(
+  orderMethodId,
+  paymentMethodId
+) {
+  try {
+    const orderMethod = await prisma.orderMethod.findUnique({
+      where: { id: orderMethodId },
+      select: { deliveryFee: true },
+    });
+
+    if (!orderMethod) {
+      throw new Error("Invalid order method id");
+    }
+
+    const paymentMethod = await prisma.paymentMethod.findUnique({
+      where: { id: paymentMethodId },
+      select: { adminFee: true },
+    });
+
+    if (!paymentMethod) {
+      throw new Error("Invalid payment method id");
+    }
+
+    return {
+      deliveryFee: Number(orderMethod.deliveryFee || 0),
+      adminFee: Number(paymentMethod.adminFee || 0),
+    };
+  } catch (err) {
+    console.error("Error while fetching fees:", err);
+    throw err;
+  }
+}
+
+export async function makeTransaction(userId, bodyCheckout, carts) {
+  try {
+    for (const cart of carts) {
+      const product = await prisma.product.findUnique({
+        where: { id: cart.productId },
+        select: { stock: true, name: true },
+      });
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      if (cart.amount > product.stock) {
+        throw new Error(
+          `Stock for product "${product.name}" is not enough. Available: ${product.stock}, requested: ${cart.amount}`
+        );
+      }
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const transaction = await tx.transaction.create({
+        data: {
+          userId: userId,
+          noInvoice: bodyCheckout.noInvoice,
+          dateTransaction: bodyCheckout.dateTransaction,
+          fullName: bodyCheckout.fullName,
+          email: bodyCheckout.email,
+          address: bodyCheckout.address,
+          phone: bodyCheckout.phone,
+          paymentMethodId: bodyCheckout.paymentMethodId,
+          orderMethodId: bodyCheckout.orderMethodId,
+          statusId: 1,
+          deliveryFee: bodyCheckout.deliveryFee,
+          adminFee: bodyCheckout.adminFee,
+          tax: bodyCheckout.tax,
+          totalTransaction: bodyCheckout.totalTransaction,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      for (const cart of carts) {
+        await tx.transactionItem.create({
+          data: {
+            transactionId: transaction.id,
+            productId: cart.productId,
+            productName: cart.productName,
+            productPrice: cart.productPrice,
+            discountPercent: cart.discountPercent,
+            discountPrice: cart.discountPrice,
+            size: cart.sizeName,
+            sizeCost: cart.sizeCost,
+            variant: cart.variantName,
+            variantCost: cart.variantCost,
+            amount: cart.amount,
+            subtotal: cart.subtotal,
+            createdBy: userId,
+            updatedBy: userId,
+          },
+        });
+
+        await tx.product.update({
+          where: { id: cart.productId },
+          data: {
+            stock: {
+              decrement: cart.amount,
+            },
+          },
+        });
+      }
+
+      await tx.cart.deleteMany({
+        where: { userId: userId },
+      });
+
+      return transaction.id;
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Error while making transaction:", err);
+    throw err;
+  }
+}

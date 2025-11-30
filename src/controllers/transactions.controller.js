@@ -1,11 +1,16 @@
+import { invalidateCache } from "../middlewares/caching.js";
+import { getListCart } from "../models/carts.model.js";
 import {
   checkTransactionExists,
+  getDeliveryFeeAndAdminFee,
   getDetailTransaction,
   getListAllTransactions,
   getTotalDataTransactions,
   getTransactionItems,
+  makeTransaction,
   updateTransactionStatusById,
 } from "../models/transactions.model.js";
+import { getDetailUser } from "../models/users.model.js";
 
 /**
  * @openapi
@@ -300,4 +305,159 @@ export async function updateStatusTransaction(req, res) {
   }
 }
 
-export async function checkout() {}
+/**
+ * @openapi
+ * /transactions:
+ *   post:
+ *     summary: Checkout carts
+ *     tags:
+ *       - transactions
+ *     security:
+ *       - BearerAuth: []
+ *     description: Checkout products on the cart
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - paymentMethodId
+ *               - orderMethodId
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *                 example: Daily Greens
+ *               email:
+ *                 type: string
+ *                 example: greens@example.com
+ *               address:
+ *                 type: string
+ *                 example: Jl. Pancoran No. 123
+ *               phone:
+ *                 type: string
+ *                 example: 081234567890
+ *               paymentMethodId:
+ *                 type: integer
+ *                 example: 1
+ *               orderMethodId:
+ *                 type: integer
+ *                 example: 1
+ *     responses:
+ *       201:
+ *         description: Transaction created successfully
+ *       400:
+ *         description: Invalid request body or cart is empty
+ *       401:
+ *         description: User Id not found in token
+ *       500:
+ *         description: Internal server error while access database
+ */
+export async function checkout(req, res) {
+  try {
+    const { paymentMethodId, orderMethodId } = req.body;
+
+    if (!paymentMethodId || !orderMethodId) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid JSON body",
+      });
+      return;
+    }
+
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: "User Id not found in token",
+      });
+      return;
+    }
+
+    const user = await getDetailUser(userId);
+
+    const bodyCheckout = {
+      fullName: req.body.fullName || user.fullName,
+      email: req.body.email || user.email,
+      address: req.body.address || user.address,
+      phone: req.body.phone || user.phone,
+      paymentMethodId: Number(paymentMethodId),
+      orderMethodId: Number(orderMethodId),
+    };
+
+    if (
+      !bodyCheckout.fullName?.trim() ||
+      !bodyCheckout.email?.trim() ||
+      !bodyCheckout.address?.trim() ||
+      !bodyCheckout.phone?.trim()
+    ) {
+      res.status(400).json({
+        success: false,
+        message:
+          "Payment info is incomplete. Please update your profile or provide data in the request body",
+      });
+      return;
+    }
+
+    const fees = await getDeliveryFeeAndAdminFee(
+      bodyCheckout.orderMethodId,
+      bodyCheckout.paymentMethodId
+    );
+    bodyCheckout.deliveryFee = fees.deliveryFee;
+    bodyCheckout.adminFee = fees.adminFee;
+
+    const carts = await getListCart(userId);
+
+    if (carts.length === 0) {
+      res.status(400).json({
+        success: false,
+        message: "Cart is empty, cannot checkout",
+      });
+      return;
+    }
+
+    let total = 0;
+    for (const cart of carts) {
+      total += cart.subtotal;
+    }
+    bodyCheckout.tax = total * 0.1;
+    bodyCheckout.totalTransaction =
+      total +
+      bodyCheckout.tax +
+      bodyCheckout.deliveryFee +
+      bodyCheckout.adminFee;
+
+    bodyCheckout.dateTransaction = new Date();
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const randomNum = Math.floor(Math.random() * 99999);
+    bodyCheckout.noInvoice = `INV-${dateStr}-${randomNum
+      .toString()
+      .padStart(5, "0")}`;
+
+    const transactionId = await makeTransaction(userId, bodyCheckout, carts);
+
+    await invalidateCache("/admin/transactions*");
+    await invalidateCache("/histories*");
+
+    res.status(201).json({
+      success: true,
+      message: "Checkout completed successfully",
+      data: {
+        transactionId: transactionId,
+        noInvoice: bodyCheckout.noInvoice,
+        dateTransaction: bodyCheckout.dateTransaction,
+        deliveryFee: bodyCheckout.deliveryFee,
+        adminFee: bodyCheckout.adminFee,
+        tax: bodyCheckout.tax,
+        totalTransaction: bodyCheckout.totalTransaction,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to checkout",
+      error: err.message,
+    });
+  }
+}
