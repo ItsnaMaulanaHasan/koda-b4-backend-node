@@ -176,7 +176,8 @@ export async function createDataUser(data) {
         password: hashed,
         profile: {
           create: {
-            profilePhoto: process.env.BASE_UPLOAD_URL + data.profilePhoto,
+            profilePhoto:
+              process.env.BASE_UPLOAD_URL + "/profiles/" + data.profilePhoto,
             fullName: data.fullName,
             phoneNumber: data.phone,
             address: data.address,
@@ -232,7 +233,8 @@ export async function updateDataUser(userId, data) {
   try {
     const profileData = {};
     if (data.profilePhoto !== undefined)
-      profileData.profilePhoto = data.profilePhoto;
+      profileData.profilePhoto =
+        process.env.BASE_UPLOAD_URL + "/profiles/" + data.profilePhoto;
     if (data.fullName !== undefined) profileData.fullName = data.fullName;
     if (data.phone !== undefined) profileData.phoneNumber = data.phone;
     if (data.address !== undefined) profileData.address = data.address;
