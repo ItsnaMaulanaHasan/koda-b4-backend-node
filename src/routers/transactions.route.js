@@ -10,6 +10,6 @@ const router = express();
 
 router.get("", cache, listTransactions);
 router.get("/:id", cache, detailTransaction);
-router.patch("", updateStatusTransaction);
+router.patch("/:id", updateStatusTransaction);
 
 export default router;

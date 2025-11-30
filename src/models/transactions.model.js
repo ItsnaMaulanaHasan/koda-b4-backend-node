@@ -84,7 +84,7 @@ export async function getListAllTransactions(page, limit, search, status) {
       transactionItems: transaction.transactionItems.map(
         (item) => item.productName
       ),
-      totalTransaction: transaction.totalTransaction,
+      totalTransaction: Number(transaction.totalTransaction),
     }));
 
     return formattedTransactions;
@@ -145,10 +145,10 @@ export async function getDetailTransaction(id) {
       paymentMethod: transaction.paymentMethod.name,
       orderMethod: transaction.orderMethod.name,
       status: transaction.status.name,
-      deliveryFee: transaction.deliveryFee,
-      adminFee: transaction.adminFee,
-      tax: transaction.tax,
-      totalTransaction: transaction.totalTransaction,
+      deliveryFee: Number(transaction.deliveryFee),
+      adminFee: Number(transaction.adminFee),
+      tax: Number(transaction.tax),
+      totalTransaction: Number(transaction.totalTransaction),
     };
 
     return formattedTransaction;
@@ -180,7 +180,18 @@ export async function getTransactionItems(transactionId) {
       },
     });
 
-    return transactionItems;
+    const formattedTransactionItems = transactionItems.map((item) => ({
+      ...item,
+      productPrice: Number(item.productPrice),
+      discountPercent: Number(item.discountPercent),
+      discountPrice: Number(item.discountPrice),
+      sizeCost: Number(item.sizeCost),
+      variantCost: Number(item.variantCost),
+      amount: Number(item.amount),
+      subtotal: Number(item.subtotal),
+    }));
+
+    return formattedTransactionItems;
   } catch (err) {
     console.error("Error while fetching transaction items:", err);
     throw err;

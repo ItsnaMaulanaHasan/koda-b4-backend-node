@@ -292,6 +292,9 @@ export async function updateStatusTransaction(req, res) {
 
     const result = await updateTransactionStatusById(id, statusId, userId);
 
+    await invalidateCache("/admin/transactions*");
+    await invalidateCache("/histories*");
+
     res.status(200).json({
       success: result.success,
       message: result.message,
