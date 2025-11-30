@@ -116,7 +116,8 @@ export async function uploadProfilePhotoUser(userId, savedFilePath) {
     await prisma.profile.update({
       where: { userId: userId },
       data: {
-        profilePhoto: process.env.BASE_UPLOAD_URL + savedFilePath,
+        profilePhoto:
+          process.env.BASE_UPLOAD_URL + "/profiles/" + savedFilePath,
         updatedBy: userId,
       },
     });

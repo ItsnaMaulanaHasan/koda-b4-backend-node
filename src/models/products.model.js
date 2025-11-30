@@ -283,7 +283,8 @@ export async function createDataProduct(
       if (imageFiles && imageFiles.length > 0) {
         const imageData = imageFiles.map((file, index) => ({
           productId: product.id,
-          productImage: process.env.BASE_UPLOAD_URL + file.filename,
+          productImage:
+            process.env.BASE_UPLOAD_URL + "/products/" + file.filename,
           isPrimary: index === 0,
           createdBy: userId,
           updatedBy: userId,
@@ -393,7 +394,8 @@ export async function updateDataProduct(
 
         const imageData = imageFiles.map((file, index) => ({
           productId: product.id,
-          productImage: process.env.BASE_UPLOAD_URL + file.filename,
+          productImage:
+            process.env.BASE_UPLOAD_URL + "/products/" + file.filename,
           isPrimary: index === 0,
           createdBy: userId,
           updatedBy: userId,
@@ -598,6 +600,7 @@ export async function getDetailProductPublic(id) {
           select: {
             category: {
               select: {
+                id: true,
                 name: true,
               },
             },
