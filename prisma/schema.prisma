@@ -371,7 +371,7 @@ model ProductVariant {
 model Transaction {
   id               Int      @id @default(autoincrement())
   userId           Int?     @map("user_id")
-  noInvoice        String   @map("no_invoice") @db.VarChar(255)
+  noInvoice        String   @map("no_invoice") @unique @db.VarChar(255)
   dateTransaction  DateTime @default(now()) @map("date_transaction") @db.Timestamp()
   fullName         String   @map("full_name") @db.VarChar(255)
   email            String   @db.VarChar(255)
