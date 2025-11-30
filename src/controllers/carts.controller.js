@@ -1,3 +1,4 @@
+import { invalidateCache } from "../middlewares/caching.js";
 import {
   addToCart,
   deleteCartById,
@@ -41,19 +42,9 @@ export async function listCarts(req, res) {
       data: carts,
     });
   } catch (err) {
-    console.error("Error in listCarts:", err);
-
-    let message =
-      "Internal server error while fetching or processing carts data";
-    if (err.message.includes("fetch")) {
-      message = "Failed to fetch list carts from database";
-    } else if (err.message.includes("process")) {
-      message = "Failed to process carts data from database";
-    }
-
     res.status(500).json({
       success: false,
-      message: message,
+      message: "Failed to get list carts",
       error: err.message,
     });
   }
@@ -134,6 +125,8 @@ export async function addCart(req, res) {
 
     const responseCart = await addToCart(bodyAdd);
 
+    await invalidateCache("/carts*");
+
     res.status(201).json({
       success: true,
       message: "Cart added successfully",
@@ -208,6 +201,8 @@ export async function deleteCart(req, res) {
       });
       return;
     }
+
+    await invalidateCache("/carts*");
 
     res.status(200).json({
       success: true,
