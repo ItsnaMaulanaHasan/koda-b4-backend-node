@@ -3,6 +3,7 @@ import fs from "fs";
 import { MulterError } from "multer";
 import { deleteFileIfExists, getProductFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
+import { invalidateCache } from "../middlewares/caching.js";
 import {
   checkProductName,
   checkProductNameForUpdate,
@@ -286,6 +287,8 @@ export async function createProduct(req, res) {
         userId
       );
 
+      await invalidateCache("/admin/products*");
+
       res.status(201).json({
         success: true,
         message: "Product created successfully",
@@ -484,6 +487,8 @@ export async function updateProduct(req, res) {
         });
       }
 
+      await invalidateCache("/admin/products*");
+
       res.status(200).json({
         success: true,
         message: "Product updated successfully",
@@ -557,6 +562,8 @@ export async function deleteProduct(req, res) {
       const filePath = getProductFilePath(imageUrl);
       deleteFileIfExists(filePath);
     });
+
+    await invalidateCache("/admin/products*");
 
     res.status(200).json({
       success: true,
