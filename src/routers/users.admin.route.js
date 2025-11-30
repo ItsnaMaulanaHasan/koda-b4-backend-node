@@ -7,10 +7,6 @@ import {
   updateUser,
 } from "../controllers/users.controller.js";
 import { cache } from "../middlewares/caching.js";
-import {
-  createUserSchema,
-  updateUserSchema,
-} from "../validators/users.validator.js";
 
 /**
  * @openapi
@@ -74,8 +70,8 @@ const router = express();
 
 router.get("", cache, listUsers);
 router.get("/:id", cache, detailUser);
-router.post("", createUserSchema, createUser);
-router.patch("/:id", updateUserSchema, updateUser);
+router.post("", createUser);
+router.patch("/:id", updateUser);
 router.delete("/:id", deleteUser);
 
 export default router;
