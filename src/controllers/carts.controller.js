@@ -126,6 +126,8 @@ export async function addCart(req, res) {
     const responseCart = await addToCart(bodyAdd);
 
     await invalidateCache("/carts*");
+    await invalidateCache("/admin/products*");
+    await invalidateCache("*products*");
 
     res.status(201).json({
       success: true,
@@ -203,6 +205,8 @@ export async function deleteCart(req, res) {
     }
 
     await invalidateCache("/carts*");
+    await invalidateCache("/admin/products*");
+    await invalidateCache("*products*");
 
     res.status(200).json({
       success: true,

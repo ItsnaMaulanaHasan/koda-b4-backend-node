@@ -234,6 +234,7 @@ export async function createUser(req, res) {
       const user = await createDataUser(data);
 
       await invalidateCache("/admin/users*");
+      await invalidateCache("/profiles*");
 
       res.status(201).json({
         success: true,
@@ -369,6 +370,7 @@ export async function updateUser(req, res) {
       await updateDataUser(userId, updateData);
 
       await invalidateCache("/admin/users*");
+      await invalidateCache("/profiles*");
 
       res.status(200).json({
         success: true,
@@ -429,6 +431,7 @@ export async function deleteUser(req, res) {
     }
 
     await invalidateCache("/admin/users*");
+    await invalidateCache("/profiles*");
 
     res.status(200).json({
       success: true,

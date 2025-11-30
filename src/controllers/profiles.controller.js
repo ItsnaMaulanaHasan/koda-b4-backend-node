@@ -125,6 +125,7 @@ export async function updateProfile(req, res) {
     await updateDataProfile(userId, bodyUpdate);
 
     await invalidateCache("/profiles*");
+    await invalidateCache("/admin/users*");
 
     res.status(200).json({
       success: true,
@@ -228,6 +229,7 @@ export async function uploadProfilePhoto(req, res) {
       }
 
       await invalidateCache("/profiles*");
+      await invalidateCache("/admin/users*");
 
       res.status(200).json({
         success: true,
