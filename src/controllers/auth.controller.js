@@ -2,6 +2,7 @@ import { validationResult } from "express-validator";
 import jwt from "jsonwebtoken";
 import process from "node:process";
 import { verifyPassword } from "../lib/hashPasswordArgon2.js";
+import { getRedisClient } from "../lib/redis.js";
 import {
   checkUserEmail,
   getUserByEmail,
@@ -159,4 +160,94 @@ export async function register(req, res) {
   }
 }
 
-// export async function logout(req, res) {}
+/**
+ * @openapi
+ * /auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     tags:
+ *       - auth
+ *     security:
+ *       - BearerAuth: []
+ *     description: Logout user by blacklisting the JWT token
+ *     responses:
+ *       200:
+ *         description: User logged out successfully
+ *       401:
+ *         description: User unauthorized or token invalid
+ *       500:
+ *         description: Internal server error
+ */
+export async function logout(req, res) {
+  try {
+    const authHeader = req.headers?.authorization ?? "";
+    const prefix = "Bearer ";
+    const redis = getRedisClient();
+
+    if (!authHeader.startsWith(prefix)) {
+      res.status(401).json({
+        success: false,
+        message: "Authorization header required or invalid format",
+      });
+      return;
+    }
+
+    const token = authHeader.substring(prefix.length);
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.APP_SECRET);
+    } catch (err) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid or expired token",
+        error: err.message,
+      });
+      return;
+    }
+
+    if (!payload.exp) {
+      res.status(401).json({
+        success: false,
+        message: "Invalid token claims",
+      });
+      return;
+    }
+
+    const expiryTime = new Date(payload.exp * 1000);
+    const now = new Date();
+    const ttl = Math.floor((expiryTime - now) / 1000);
+
+    if (ttl <= 0) {
+      res.status(401).json({
+        success: false,
+        message: "Token already expired",
+      });
+      return;
+    }
+
+    const blacklistKey = `blacklist:${token}`;
+
+    try {
+      await redis.setEx(blacklistKey, ttl, token);
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to logout user",
+        error: err.message,
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to logout user",
+      error: err.message,
+    });
+  }
+}
