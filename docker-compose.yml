@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres_db_express
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD_DOCKER}
+      - POSTGRES_DB=${POSTGRES_DB_DOCKER}
+      - POSTGRES_USER=${POSTGRES_USER_DOCKER}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_DOCKER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: redis_cache_express
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: backend_app_express
+    ports:
+      - "8081:8080"
+    environment:
+      - APP_URL=${APP_URL}
+      - ORIGIN_URL=${ORIGIN_URL}
+      - ORIGIN_URL_VERCEL=${ORIGIN_URL_VERCEL}
+      - ORIGIN_URL_VERCEL2=${ORIGIN_URL_VERCEL2}
+      - APP_SECRET=${APP_SECRET}
+      - BASE_UPLOAD_URL=${BASE_UPLOAD_URL}
+      - DATABASE_URL=${DATABASE_URL_DOCKER}
+      - REDIS_URL=${REDIS_URL_DOCKER}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - FROM_EMAIL=${FROM_EMAIL}
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
