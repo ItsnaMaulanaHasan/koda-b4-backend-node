@@ -3,6 +3,7 @@ import { MulterError } from "multer";
 import process from "node:process";
 import { deleteFileIfExists, getUserFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
+import { invalidateCache } from "../middlewares/caching.js";
 import {
   checkUserEmail,
   checkUserEmailExcludingId,
@@ -190,14 +191,14 @@ export async function createUser(req, res) {
       if (err instanceof MulterError) {
         res.status(400).json({
           success: false,
-          message: "Failed to uploaf profile photo",
+          message: "Failed to upload profile photo",
           error: err.message,
         });
         return;
       } else if (err) {
         res.status(400).json({
           success: false,
-          message: "Failed to uploaf profile photo",
+          message: "Failed to upload profile photo",
           error: err.message,
         });
         return;
@@ -233,6 +234,8 @@ export async function createUser(req, res) {
       }
 
       const user = await createDataUser(data);
+
+      await invalidateCache("/admin/users*");
 
       res.status(201).json({
         success: true,
@@ -367,6 +370,8 @@ export async function updateUser(req, res) {
 
       await updateDataUser(userId, updateData);
 
+      await invalidateCache("/admin/users*");
+
       res.status(200).json({
         success: true,
         message: "User updated successfully",
@@ -424,6 +429,8 @@ export async function deleteUser(req, res) {
       const filePath = getUserFilePath(existingUser.profile.profilePhoto);
       deleteFileIfExists(filePath);
     }
+
+    await invalidateCache("/admin/users*");
 
     res.status(200).json({
       success: true,
