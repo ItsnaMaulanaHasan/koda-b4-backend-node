@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import process from "process";
-import { getRedisClient } from "../lib/redis";
+import { getRedisClient } from "../lib/redis.js";
 
 export async function authMiddleware(req, res, next) {
   const bearer = req.headers?.authorization ?? "";
