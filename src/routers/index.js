@@ -5,6 +5,7 @@ import { adminOnly } from "../middlewares/adminOnly.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import authRouter from "./auth.route.js";
 import cartsRouter from "./carts.route.js";
+import categoriesRouter from "./categories.route.js";
 import checkoutRouter from "./checkout.route.js";
 import historiesRouter from "./histories.route.js";
 import orderMethodRouter from "./orderMethod.route.js";
@@ -12,8 +13,10 @@ import paymentMethodRouter from "./paymentMethod.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
 import profilesRouter from "./profiles.route.js";
+import sizesRouter from "./sizes.route.js";
 import transactionsRouter from "./transactions.route.js";
 import usersRouter from "./users.admin.route.js";
+import variantsRouter from "./variants.route.js";
 
 const router = Router();
 
@@ -29,6 +32,9 @@ router.use(
   adminOnly,
   transactionsRouter
 );
+router.use("/admin/categories", authMiddleware, adminOnly, categoriesRouter);
+router.use("/admin/sizes", authMiddleware, adminOnly, sizesRouter);
+router.use("/admin/variants", authMiddleware, adminOnly, variantsRouter);
 
 // public
 router.use("", productsPublicRouter);
