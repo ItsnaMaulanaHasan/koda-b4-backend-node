@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express, { json, urlencoded } from "express";
+import express from "express";
 import serverless from "serverless-http";
 import initDocs from "../src/lib/docs.js";
 import { initRedis } from "../src/lib/redis.js";
@@ -8,23 +8,31 @@ import router from "../src/routers/index.js";
 
 const app = express();
 
-await initRedis();
+let initialized = false;
 
-initDocs(app);
+async function initOnce() {
+  if (initialized) return;
+  await initRedis();
+  initDocs(app);
+  initialized = true;
+}
+
+app.use(async (req, res, next) => {
+  await initOnce();
+  next();
+});
 
 app.use(corsMiddleware());
-app.use(urlencoded({ extended: true }));
-app.use(json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/", router);
 
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Backend is running well",
+    message: "Backend is running well from serverless",
   });
 });
-
-app.use("/", router);
 
 export default serverless(app);
