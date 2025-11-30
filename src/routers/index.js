@@ -7,6 +7,8 @@ import authRouter from "./auth.route.js";
 import cartsRouter from "./carts.route.js";
 import checkoutRouter from "./checkout.route.js";
 import historiesRouter from "./histories.route.js";
+import orderMethodRouter from "./orderMethod.route.js";
+import paymentMethodRouter from "./paymentMethod.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
 import profilesRouter from "./profiles.route.js";
@@ -34,6 +36,8 @@ router.use("/profiles", authMiddleware, profilesRouter);
 router.use("/histories", authMiddleware, historiesRouter);
 router.use("/carts", authMiddleware, cartsRouter);
 router.use("/transactions", authMiddleware, checkoutRouter);
+router.use("/order-methods", authMiddleware, orderMethodRouter);
+router.use("/payment-methods", authMiddleware, paymentMethodRouter);
 
 // serving static file
 router.use(
