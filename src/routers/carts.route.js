@@ -4,12 +4,11 @@ import {
   deleteCart,
   listCarts,
 } from "../controllers/carts.controller.js";
-import { cache } from "../middlewares/caching.js";
 
 const router = express();
 
-router.get("", cache, listCarts);
+router.get("", listCarts);
 router.post("", addCart);
-router.delete("", deleteCart);
+router.delete("/:id", deleteCart);
 
 export default router;
