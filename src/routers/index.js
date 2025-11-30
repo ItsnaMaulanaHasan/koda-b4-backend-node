@@ -5,6 +5,7 @@ import { adminOnly } from "../middlewares/adminOnly.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import authRouter from "./auth.route.js";
 import cartsRouter from "./carts.route.js";
+import checkoutRouter from "./checkout.route.js";
 import historiesRouter from "./histories.route.js";
 import productsRouter from "./products.admin.route.js";
 import productsPublicRouter from "./products.public.route.js";
@@ -32,8 +33,17 @@ router.use("", productsPublicRouter);
 router.use("/profiles", authMiddleware, profilesRouter);
 router.use("/histories", authMiddleware, historiesRouter);
 router.use("/carts", authMiddleware, cartsRouter);
+router.use("/transactions", authMiddleware, checkoutRouter);
 
 // serving static file
-router.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+router.use(
+  "/uploads/products",
+  express.static(path.join(process.cwd(), "uploads/products"))
+);
+
+router.use(
+  "/uploads/profiles",
+  express.static(path.join(process.cwd(), "uploads/profiles"))
+);
 
 export default router;
