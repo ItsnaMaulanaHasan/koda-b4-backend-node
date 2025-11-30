@@ -1,8 +1,8 @@
 import fs from "fs";
 import { MulterError } from "multer";
-import process from "node:process";
-import path from "path";
+import { deleteFileIfExists, getUserFilePath } from "../lib/fileHelper.js";
 import upload from "../lib/upload.js";
+import { invalidateCache } from "../middlewares/caching.js";
 import {
   getDetailProfile,
   getProfilePhotoById,
@@ -124,6 +124,8 @@ export async function updateProfile(req, res) {
 
     await updateDataProfile(userId, bodyUpdate);
 
+    await invalidateCache("/profiles*");
+
     res.status(200).json({
       success: true,
       message: "User updated successfully",
@@ -163,9 +165,9 @@ export async function updateProfile(req, res) {
  *           schema:
  *             type: object
  *             required:
- *               - profilePhoto
+ *               - filePhoto
  *             properties:
- *               profilePhoto:
+ *               filePhoto:
  *                 type: string
  *                 format: binary
  *                 description: Profile photo file (jpg/png)
@@ -182,7 +184,7 @@ export async function updateProfile(req, res) {
  *         description: Internal server error
  */
 export async function uploadProfilePhoto(req, res) {
-  upload.single("profilePhoto")(req, res, async function (err) {
+  upload.single("filePhoto")(req, res, async function (err) {
     const uploadedFile = req.file;
     try {
       if (err instanceof MulterError) {
@@ -221,15 +223,11 @@ export async function uploadProfilePhoto(req, res) {
       await uploadProfilePhotoUser(userId, uploadedFile.filename);
 
       if (oldPhotoPath) {
-        const fullPath = path.join(
-          process.cwd(),
-          "uploads/profiles",
-          oldPhotoPath
-        );
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
+        const filePath = getUserFilePath(oldPhotoPath);
+        deleteFileIfExists(filePath);
       }
+
+      await invalidateCache("/profiles*");
 
       res.status(200).json({
         success: true,
