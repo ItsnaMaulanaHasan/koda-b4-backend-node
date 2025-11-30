@@ -5,7 +5,7 @@ import { getRedisClient } from "../lib/redis.js";
 import {
   generateRandomToken,
   sendPasswordResetEmail,
-} from "../lib/sendemail.js";
+} from "../lib/sendEmail.js";
 import {
   deleteOldPasswordResetTokens,
   getUserIdByEmail,
