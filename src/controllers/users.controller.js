@@ -88,14 +88,12 @@ export async function listUsers(req, res) {
     res.json({
       success: true,
       message: "Success get list users",
-      result: {
-        data: listUsers,
-        meta: {
-          page,
-          limit,
-          totalData,
-          totalPage: Math.ceil(totalData / limit),
-        },
+      data: listUsers,
+      meta: {
+        page,
+        limit,
+        totalData,
+        totalPage: Math.ceil(totalData / limit),
       },
     });
   } catch (err) {
@@ -148,7 +146,7 @@ export async function detailUser(req, res) {
     res.json({
       success: true,
       message: "Success get detail user",
-      result: user,
+      data: user,
     });
   } catch (err) {
     res.status(500).json({
@@ -240,7 +238,7 @@ export async function createUser(req, res) {
       res.status(201).json({
         success: true,
         message: "User created successfully",
-        result: {
+        data: {
           id: user.id,
           profilePhoto: user.profile.profilePhoto || "",
           fullName: user.profile.fullName,

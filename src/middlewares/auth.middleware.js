@@ -26,7 +26,7 @@ export function authMiddleware(req, res, next) {
     res.status(401).json({
       success: false,
       message: "Failed to verify token",
-      result: err.message,
+      error: err.message,
     });
   }
 }

@@ -86,14 +86,12 @@ export async function listProductsAdmin(req, res) {
     res.json({
       success: true,
       message: "Success get list products",
-      result: {
-        data: listProducts,
-        meta: {
-          page,
-          limit,
-          totalData,
-          totalPage: Math.ceil(totalData / limit),
-        },
+      data: listProducts,
+      meta: {
+        page,
+        limit,
+        totalData,
+        totalPage: Math.ceil(totalData / limit),
       },
     });
   } catch (err) {
@@ -145,7 +143,7 @@ export async function detailProductAdmin(req, res) {
     res.json({
       success: true,
       message: "Success get detail product",
-      result: product,
+      data: product,
     });
   } catch (err) {
     res.status(500).json({
