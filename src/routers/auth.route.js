@@ -1,5 +1,9 @@
 import express from "express";
 import { login, logout, register } from "../controllers/auth.controller.js";
+import {
+  forgotPassword,
+  resetPassword,
+} from "../controllers/passwordReset.controller.js";
 import { loginSchema, registerSchema } from "../validators/auth.validator.js";
 
 /**
@@ -46,5 +50,7 @@ const router = express();
 router.post("/login", loginSchema, login);
 router.post("/register", registerSchema, register);
 router.post("/logout", logout);
+router.post("/forgot-password", forgotPassword);
+router.patch("/reset-password", resetPassword);
 
 export default router;
