@@ -69,7 +69,7 @@ export async function getListHistories(userId, page, limit, date, statusId) {
       noInvoice: transaction.noInvoice,
       dateTransaction: transaction.dateTransaction,
       status: transaction.status.name,
-      totalTransaction: transaction.totalTransaction,
+      totalTransaction: Number(transaction.totalTransaction),
       image:
         transaction.transactionItems.length > 0 &&
         transaction.transactionItems[0].product.productImages.length > 0
@@ -169,10 +169,10 @@ export async function getDetailHistory(noInvoice) {
       paymentMethod: transaction.paymentMethod.name,
       orderMethod: transaction.orderMethod.name,
       status: transaction.status.name,
-      deliveryFee: transaction.deliveryFee,
-      adminFee: transaction.adminFee,
-      tax: transaction.tax,
-      totalTransaction: transaction.totalTransaction,
+      deliveryFee: Number(transaction.deliveryFee),
+      adminFee: Number(transaction.adminFee),
+      tax: Number(transaction.tax),
+      totalTransaction: Number(transaction.totalTransaction),
       historyItems: transactionItems.map((item) => ({
         id: item.id,
         transactionId: item.transactionId,
@@ -182,15 +182,15 @@ export async function getDetailHistory(noInvoice) {
           item.product.productImages.length > 0
             ? item.product.productImages[0].productImage
             : "",
-        productPrice: item.productPrice,
-        discountPercent: item.discountPercent,
-        discountPrice: item.discountPrice,
+        productPrice: Number(item.productPrice),
+        discountPercent: Number(item.discountPercent),
+        discountPrice: Number(item.discountPrice),
         size: item.size,
-        sizeCost: item.sizeCost,
+        sizeCost: Number(item.sizeCost),
         variant: item.variant,
-        variantCost: item.variantCost,
-        amount: item.amount,
-        subtotal: item.subtotal,
+        variantCost: Number(item.variantCost),
+        amount: Number(item.amount),
+        subtotal: Number(item.subtotal),
       })),
     };
 
