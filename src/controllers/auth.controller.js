@@ -76,6 +76,13 @@ export async function login(req, res) {
       }
     );
 
+    const redis = getRedisClient();
+    const userTokenKey = `user_${user.id}_token`;
+    const tokenExpiry = 24 * 60 * 60;
+
+    await redis.del(userTokenKey);
+    await redis.setEx(userTokenKey, tokenExpiry, token);
+
     res.json({
       success: true,
       message: "Login successfull!",
