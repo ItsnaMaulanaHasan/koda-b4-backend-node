@@ -5,9 +5,12 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node index.js",
     "dev": "node --watch index.js",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
     "postinstall": "prisma generate"
   },
   "keywords": [],
