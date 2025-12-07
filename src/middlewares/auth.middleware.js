@@ -32,6 +32,7 @@ export async function authMiddleware(req, res, next) {
     req.user = {
       id: payload.id,
       role: payload.role,
+      token: token,
     };
     req.jwtPayload = payload;
     next();

@@ -181,9 +181,8 @@ export async function resetPassword(req, res) {
     await deleteOldPasswordResetTokens(userId);
 
     const redis = getRedisClient();
-    const userTokenKey = `user_${userId}_token`;
 
-    const tokenUser = await redis.get(userTokenKey);
+    const tokenUser = req.user?.token;
     if (tokenUser) {
       const payload = jwt.verify(tokenUser, process.env.APP_SECRET);
 
