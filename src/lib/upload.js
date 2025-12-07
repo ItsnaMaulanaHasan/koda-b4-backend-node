@@ -17,17 +17,53 @@ const storage = diskStorage({
 });
 
 function fileFilter(req, file, cb) {
-  const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error("Only .jpg, .jpeg, .png allowed!"));
+  const allowedMimeTypes = ["image/jpeg", "image/jpg", "image/png"];
+  const allowedExtensions = [".jpg", ".jpeg", ".png"];
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return cb(
+      new Error(
+        `Invalid file type. Only JPEG, JPG, and PNG images are allowed. Received: ${file.mimetype}`
+      ),
+      false
+    );
   }
+
+  if (!allowedExtensions.includes(ext)) {
+    return cb(
+      new Error(
+        `Invalid file extension. Only .jpg, .jpeg, and .png files are allowed. Received: ${ext}`
+      ),
+      false
+    );
+  }
+
+  const mimeExtensionMap = {
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/jpg": [".jpg", ".jpeg"],
+    "image/png": [".png"],
+  };
+
+  const validExtensionsForMime = mimeExtensionMap[file.mimetype] || [];
+  if (!validExtensionsForMime.includes(ext)) {
+    return cb(
+      new Error(
+        `File extension ${ext} does not match MIME type ${file.mimetype}`
+      ),
+      false
+    );
+  }
+
   cb(null, true);
 }
 
 const upload = multer({
   storage: storage,
   fileFilter,
-  limits: { fileSize: 1 * 1024 * 1024 },
+  limits: {
+    fileSize: 1 * 1024 * 1024,
+    files: 4,
+  },
 });
 
 export default upload;
