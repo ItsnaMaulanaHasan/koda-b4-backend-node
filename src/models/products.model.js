@@ -87,10 +87,11 @@ export async function getListProductsAdmin(search, page, limit) {
 
     const result = products.map((product) => {
       const discountPercent = product.discountPercent || 0;
-      const discountPrice =
+      const discountPrice = Number(
         discountPercent === 0
           ? 0
-          : product.price * (1 - discountPercent / 100.0);
+          : product.price * (1 - discountPercent / 100.0).toFixed(2)
+      );
 
       const imagePrimary =
         product.productImages.find((img) => img.isPrimary)?.productImage || "";
@@ -123,12 +124,12 @@ export async function getListProductsAdmin(search, page, limit) {
         id: product.id,
         name: product.name,
         description: product.description,
-        price: product.price,
+        price: Number(product.price),
         discountPercent: discountPercent,
         discountPrice: discountPrice,
-        rating: product.rating || 0,
+        rating: Number(product.rating || 0),
         isFlashSale: product.isFlashSale,
-        stock: product.stock || 0,
+        stock: Number(product.stock || 0),
         isActive: product.isActive,
         isFavourite: product.isFavourite,
         imagePrimary: imagePrimary,
@@ -555,12 +556,13 @@ export async function getListFavouriteProducts(limit) {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPercent: product.discountPercent || 0,
-      discountPrice:
+      price: Number(product.price),
+      discountPercent: Number(product.discountPercent || 0),
+      discountPrice: Number(
         product.discountPercent && product.discountPercent > 0
-          ? product.price * (1 - product.discountPercent / 100)
-          : 0,
+          ? product.price * (1 - product.discountPercent / 100).toFixed(2)
+          : 0
+      ),
       isFlashSale: product.isFlashSale,
       isFavourite: product.isFavourite,
       productImage:
@@ -714,12 +716,13 @@ export async function getListProductsPublic(
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPercent: product.discountPercent || 0,
-      discountPrice:
+      price: Number(product.price),
+      discountPercent: Number(product.discountPercent || 0),
+      discountPrice: Number(
         product.discountPercent && product.discountPercent > 0
-          ? product.price * (1 - product.discountPercent / 100)
-          : 0,
+          ? product.price * (1 - product.discountPercent / 100).toFixed(2)
+          : 0
+      ),
       isFlashSale: product.isFlashSale,
       isFavourite: product.isFavourite,
       productImage:
@@ -838,13 +841,14 @@ export async function getDetailProductPublic(id) {
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
-      discountPercent: product.discountPercent || 0,
-      discountPrice:
+      price: Number(product.price),
+      discountPercent: Number(product.discountPercent || 0),
+      discountPrice: Number(
         product.discountPercent && product.discountPercent > 0
-          ? product.price * (1 - product.discountPercent / 100)
-          : 0,
-      rating: product.rating || 0,
+          ? product.price * (1 - product.discountPercent / 100).toFixed(2)
+          : 0
+      ),
+      rating: Number(product.rating || 0),
       isFlashSale: product.isFlashSale,
       stock: product.stock || 0,
       productImages: product.productImages.map((img) => img.productImage),
@@ -863,12 +867,13 @@ export async function getDetailProductPublic(id) {
         id: rec.id,
         name: rec.name,
         description: rec.description,
-        price: rec.price,
-        discountPercent: rec.discountPercent || 0,
-        discountPrice:
+        price: Number(rec.price),
+        discountPercent: Number(rec.discountPercent || 0),
+        discountPrice: Number(
           rec.discountPercent && rec.discountPercent > 0
-            ? rec.price * (1 - rec.discountPercent / 100)
-            : 0,
+            ? rec.price * (1 - rec.discountPercent / 100).toFixed(2)
+            : 0
+        ),
         isFlashSale: rec.isFlashSale,
         isFavourite: rec.isFavourite,
         productImage:
