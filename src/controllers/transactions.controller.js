@@ -2,14 +2,15 @@ import { buildHateoasPagination } from "../lib/hateoasBuilder.js";
 import { invalidateCache } from "../middlewares/caching.js";
 import { getListCart } from "../models/carts.model.js";
 import {
-  checkTransactionExists,
   getDeliveryFeeAndAdminFee,
   getDetailTransaction,
   getListAllTransactions,
   getTotalDataTransactions,
+  getTransactionById,
   getTransactionItems,
   makeTransaction,
   updateTransactionStatusById,
+  validateStatusTransition,
 } from "../models/transactions.model.js";
 import { getDetailUser } from "../models/users.model.js";
 
@@ -246,7 +247,7 @@ export async function detailTransaction(req, res) {
  *       200:
  *         description: Transaction status updated successfully
  *       400:
- *         description: Invalid Id format or invalid request body
+ *         description: Invalid Id format, invalid request body, or invalid status transition
  *       401:
  *         description: User Id not found in token
  *       404:
@@ -285,11 +286,24 @@ export async function updateStatusTransaction(req, res) {
       return;
     }
 
-    const isExists = await checkTransactionExists(id);
-    if (!isExists) {
+    const transaction = await getTransactionById(id);
+    if (!transaction) {
       res.status(404).json({
         success: false,
         message: "Transaction not found",
+      });
+      return;
+    }
+
+    const validationResult = validateStatusTransition(
+      transaction.orderMethodId,
+      statusId
+    );
+
+    if (!validationResult.isValid) {
+      res.status(400).json({
+        success: false,
+        message: validationResult.message,
       });
       return;
     }
@@ -427,7 +441,7 @@ export async function checkout(req, res) {
     for (const cart of carts) {
       total += cart.subtotal;
     }
-    bodyCheckout.tax = total * 0.1;
+    bodyCheckout.tax = (total * 0.1).toFixed(2);
     bodyCheckout.totalTransaction =
       total +
       bodyCheckout.tax +

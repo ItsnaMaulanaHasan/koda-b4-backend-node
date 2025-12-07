@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { prisma } from "../lib/prisma.js";
 
 export async function getTotalDataTransactions(search, status) {
@@ -196,6 +197,65 @@ export async function getTransactionItems(transactionId) {
     console.error("Error while fetching transaction items:", err);
     throw err;
   }
+}
+
+export async function getTransactionById(id) {
+  try {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: id },
+      select: {
+        id: true,
+        orderMethodId: true,
+        statusId: true,
+        orderMethod: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        status: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return transaction;
+  } catch (err) {
+    console.error("Error while getting transaction:", err);
+    throw err;
+  }
+}
+
+export function validateStatusTransition(orderMethodId, newStatusId) {
+  const STATUS_ON_PROGRESS = 1;
+  const STATUS_SENDING_GOODS = 2;
+  const STATUS_FINISH_ORDER = 3;
+
+  const ORDER_METHOD_DINE_IN = 1;
+  const ORDER_METHOD_DOOR_DELIVERY = 2;
+  const ORDER_METHOD_PICK_UP = 3;
+
+  if (
+    (orderMethodId === ORDER_METHOD_DINE_IN ||
+      orderMethodId === ORDER_METHOD_PICK_UP) &&
+    newStatusId === STATUS_SENDING_GOODS
+  ) {
+    return {
+      isValid: false,
+      message:
+        orderMethodId === ORDER_METHOD_DINE_IN
+          ? "Cannot set status to 'Sending Goods' for Dine In orders. Valid statuses are 'On Progress' or 'Finish Order'."
+          : "Cannot set status to 'Sending Goods' for Pick Up orders. Valid statuses are 'On Progress' or 'Finish Order'.",
+    };
+  }
+
+  return {
+    isValid: true,
+    message: "Status transition is valid",
+  };
 }
 
 export async function checkTransactionExists(id) {
