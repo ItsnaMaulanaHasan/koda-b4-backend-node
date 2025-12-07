@@ -20,7 +20,7 @@ import {
  *   post:
  *     summary: Request password reset
  *     tags:
- *       - auth
+ *       - authentication
  *     description: Send a 12-digit reset token to user's email
  *     requestBody:
  *       required: true
@@ -34,17 +34,7 @@ import {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: user@example.com
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *                 example: user@example.com
+ *                 example: hasanmaulana453@gmail.com
  *     responses:
  *       200:
  *         description: Reset token sent successfully
@@ -112,7 +102,7 @@ export async function forgotPassword(req, res) {
  *   patch:
  *     summary: Reset password
  *     tags:
- *       - auth
+ *       - authentication
  *     description: Reset user password using valid token
  *     requestBody:
  *       required: true
@@ -128,30 +118,14 @@ export async function forgotPassword(req, res) {
  *               email:
  *                 type: string
  *                 format: email
- *                 example: user@example.com
+ *                 example: hasanmaulana453@gmail.com
  *               token:
  *                 type: string
  *                 example: Koda674wsUiq
  *               newPassword:
  *                 type: string
  *                 format: password
- *                 example: Newpassword@11123
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - token
- *               - newPassword
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               token:
- *                 type: string
- *               newPassword:
- *                 type: string
- *                 format: password
+ *                 example: Hasan@87654321
  *     responses:
  *       200:
  *         description: Password reset successfully

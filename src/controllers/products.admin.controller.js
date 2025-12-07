@@ -123,6 +123,7 @@ export async function listProductsAdmin(req, res) {
  *         required: true
  *         schema:
  *           type: integer
+ *           example: 1
  *     responses:
  *       200:
  *         description: Success get detail product

@@ -8,7 +8,7 @@ import {
 
 /**
  * @openapi
- * /products/favourites:
+ * /favourite-products:
  *   get:
  *     summary: Get favourite products
  *     tags:

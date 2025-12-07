@@ -173,7 +173,7 @@ export async function register(req, res) {
  *   post:
  *     summary: Logout user
  *     tags:
- *       - auth
+ *       - authentication
  *     security:
  *       - BearerAuth: []
  *     description: Logout user by blacklisting the JWT token
