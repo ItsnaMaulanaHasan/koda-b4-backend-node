@@ -33,7 +33,7 @@ export async function authMiddleware(req, res, next) {
       id: payload.id,
       role: payload.role,
     };
-    req.jwtPaload = payload;
+    req.jwtPayload = payload;
     next();
   } catch (err) {
     res.status(401).json({
